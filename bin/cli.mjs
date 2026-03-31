@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { execSync, spawn } from "child_process";
+import { execSync, execFileSync, spawn } from "child_process";
 import { existsSync, mkdirSync, cpSync, readFileSync, writeFileSync, rmSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -11,6 +11,7 @@ const pkgRoot = join(__dirname, "..");
 const HOME = process.env.HOME || process.env.USERPROFILE || "~";
 const APP_DIR = join(HOME, ".prompttrace");
 const DATA_DIR = join(APP_DIR, "data");
+const IS_WIN = process.platform === "win32";
 
 const args = process.argv.slice(2);
 
@@ -42,6 +43,35 @@ function findFreePort(startPort) {
   });
 }
 
+// --- Cross-platform helpers ---
+function q(p) { return `"${p}"`; }
+
+function npmRun(cmdArgs, cwd, stdio) {
+  const npmCmd = IS_WIN ? "npm.cmd" : "npm";
+  execFileSync(npmCmd, cmdArgs, { cwd, stdio });
+}
+
+function nextBinPath() {
+  const bin = join(APP_DIR, "node_modules", ".bin", IS_WIN ? "next.cmd" : "next");
+  return bin;
+}
+
+function runNext(cmdArgs, cwd, stdio) {
+  execFileSync(nextBinPath(), cmdArgs, { cwd, stdio, env: { ...process.env, NODE_ENV: "production" } });
+}
+
+function openBrowser(url) {
+  try {
+    if (IS_WIN) {
+      execSync(`start "" "${url}"`, { stdio: "ignore", shell: true });
+    } else if (process.platform === "darwin") {
+      execSync(`open "${url}"`, { stdio: "ignore" });
+    } else {
+      execSync(`xdg-open "${url}"`, { stdio: "ignore" });
+    }
+  } catch { /* ignore */ }
+}
+
 const requestedPort = args.includes("--port")
   ? parseInt(args[args.indexOf("--port") + 1], 10)
   : 3001;
@@ -52,11 +82,11 @@ const noCache = args.includes("--no-cache");
 const scanOnly = args[0] === "scan";
 
 console.log("");
-console.log("  PromptTrace v0.2.7");
+console.log("  PromptTrace v0.2.8");
 console.log("  Local-first prompt intelligence for developers");
 console.log("");
 
-// --- Setup ~/.prompttrace with standalone build ---
+// --- Setup ~/.prompttrace ---
 const pkgJson = JSON.parse(readFileSync(join(pkgRoot, "package.json"), "utf-8"));
 const versionFile = join(APP_DIR, ".version");
 const currentVersion = pkgJson.version;
@@ -73,54 +103,39 @@ if (needsSetup) {
   mkdirSync(APP_DIR, { recursive: true });
   mkdirSync(DATA_DIR, { recursive: true });
 
-  // Check if we have a pre-built standalone in the package
   const standaloneDir = join(pkgRoot, ".next", "standalone");
   const staticDir = join(pkgRoot, ".next", "static");
 
   if (existsSync(standaloneDir)) {
-    // Copy standalone server
     cpSync(standaloneDir, APP_DIR, { recursive: true, force: true });
-
-    // Copy static assets
     const destStatic = join(APP_DIR, ".next", "static");
     if (existsSync(staticDir)) {
       mkdirSync(dirname(destStatic), { recursive: true });
       cpSync(staticDir, destStatic, { recursive: true, force: true });
     }
   } else {
-    // Clean old artifacts on update to avoid stale deps
-    const oldModules = join(APP_DIR, "node_modules");
-    const oldNext = join(APP_DIR, ".next");
-    const oldLock = join(APP_DIR, "package-lock.json");
-    if (existsSync(oldModules)) rmSync(oldModules, { recursive: true, force: true });
-    if (existsSync(oldNext)) rmSync(oldNext, { recursive: true, force: true });
-    if (existsSync(oldLock)) rmSync(oldLock);
+    // Clean old artifacts
+    for (const p of ["node_modules", ".next", "package-lock.json"]) {
+      const target = join(APP_DIR, p);
+      if (existsSync(target)) rmSync(target, { recursive: true, force: true });
+    }
 
-    // Copy source files
-    const copyDirs = ["src", "scripts", "docs"];
-    const copyFiles = ["package.json", "tsconfig.json", "next.config.ts", "postcss.config.mjs", "next-env.d.ts"];
-
-    for (const dir of copyDirs) {
+    // Copy source
+    for (const dir of ["src", "scripts", "docs"]) {
       const src = join(pkgRoot, dir);
       if (existsSync(src)) cpSync(src, join(APP_DIR, dir), { recursive: true, force: true });
     }
-    for (const file of copyFiles) {
+    for (const file of ["package.json", "tsconfig.json", "next.config.ts", "postcss.config.mjs", "next-env.d.ts"]) {
       const src = join(pkgRoot, file);
       if (existsSync(src)) cpSync(src, join(APP_DIR, file), { force: true });
     }
     mkdirSync(join(APP_DIR, "public"), { recursive: true });
 
     console.log(" installing deps...");
-    execSync("npm install --no-audit --no-fund", {
-      cwd: APP_DIR,
-      stdio: ["ignore", "ignore", "inherit"],
-    });
+    npmRun(["install", "--no-audit", "--no-fund"], APP_DIR, ["ignore", "ignore", "inherit"]);
 
     process.stdout.write("  Building dashboard...");
-    execSync(
-      `${process.execPath} ${join(APP_DIR, "node_modules", ".bin", "next")} build`,
-      { cwd: APP_DIR, stdio: ["ignore", "ignore", "inherit"] }
-    );
+    runNext(["build"], APP_DIR, ["ignore", "ignore", "inherit"]);
   }
 
   writeFileSync(versionFile, currentVersion);
@@ -132,14 +147,13 @@ if (needsSetup) {
 mkdirSync(DATA_DIR, { recursive: true });
 
 const dbPath = join(DATA_DIR, "prompttrace.db");
-const isFirstRun = !existsSync(dbPath);
 
 // --- Determine server entry ---
 const standaloneServer = join(APP_DIR, "server.js");
 const useStandalone = existsSync(standaloneServer);
 
 let serverArgs;
-let serverEnv = {
+const serverEnv = {
   ...process.env,
   PORT: port,
   HOSTNAME: "0.0.0.0",
@@ -149,8 +163,7 @@ let serverEnv = {
 if (useStandalone) {
   serverArgs = [standaloneServer];
 } else {
-  const nextBin = join(APP_DIR, "node_modules", ".bin", "next");
-  serverArgs = [nextBin, "start", "-p", port];
+  serverArgs = [nextBinPath(), "start", "-p", port];
 }
 
 // --- Scan only mode ---
@@ -177,7 +190,6 @@ const server = spawn(process.execPath, serverArgs, {
   env: serverEnv,
 });
 
-// Suppress Next.js startup logs, show our own
 server.stdout?.on("data", () => {});
 
 // Scan, then open browser
@@ -186,11 +198,9 @@ server.stdout?.on("data", () => {});
 
   if (!noScan) {
     if (noCache && existsSync(dbPath)) {
-      rmSync(dbPath, { force: true });
-      const shm = dbPath + "-shm";
-      const wal = dbPath + "-wal";
-      if (existsSync(shm)) rmSync(shm, { force: true });
-      if (existsSync(wal)) rmSync(wal, { force: true });
+      for (const f of [dbPath, dbPath + "-shm", dbPath + "-wal"]) {
+        if (existsSync(f)) rmSync(f, { force: true });
+      }
     }
     await runIngest(port);
   }
@@ -200,15 +210,7 @@ server.stdout?.on("data", () => {});
   console.log("  Press Ctrl+C to stop");
   console.log("");
 
-  if (!noOpen) {
-    const cmd =
-      process.platform === "darwin" ? "open"
-        : process.platform === "win32" ? "start"
-        : "xdg-open";
-    try {
-      execSync(`${cmd} http://localhost:${port}`, { stdio: "ignore" });
-    } catch { /* ignore */ }
-  }
+  if (!noOpen) openBrowser(`http://localhost:${port}`);
 })();
 
 server.on("close", (code) => process.exit(code ?? 0));
