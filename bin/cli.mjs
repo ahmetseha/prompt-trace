@@ -50,7 +50,7 @@ const noScan = args.includes("--no-scan");
 const scanOnly = args[0] === "scan";
 
 console.log("");
-console.log("  PromptTrace v0.1.2");
+console.log("  PromptTrace v0.1.3");
 console.log("  Local-first prompt intelligence for developers");
 console.log("");
 
@@ -155,7 +155,7 @@ if (scanOnly) {
 }
 
 // --- Start server ---
-console.log(`  Dashboard: http://localhost:${port}`);
+console.log(`  Dashboard: http://localhost:${port}/dashboard`);
 console.log("  Press Ctrl+C to stop");
 console.log("");
 
@@ -165,29 +165,34 @@ const server = spawn(
   { cwd: APP_DIR, stdio: "inherit" }
 );
 
-// Auto-scan on first run
-if (isFirstRun && !noScan) {
+// Always scan on start (not just first run), then open browser
+if (!noScan) {
   (async () => {
     await waitForServer(port, 20000);
     await runIngest(port);
+    // Open browser AFTER scan completes so dashboard shows real data
+    if (!noOpen) openBrowser(port);
+  })();
+} else if (!noOpen) {
+  // No scan, just open browser after server is ready
+  (async () => {
+    await waitForServer(port, 20000);
+    openBrowser(port);
   })();
 }
 
-// Open browser
-if (!noOpen) {
-  setTimeout(() => {
-    const cmd =
-      process.platform === "darwin"
-        ? "open"
-        : process.platform === "win32"
-          ? "start"
-          : "xdg-open";
-    try {
-      execSync(`${cmd} http://localhost:${port}`, { stdio: "ignore" });
-    } catch {
-      // ignore
-    }
-  }, 3000);
+function openBrowser(p) {
+  const cmd =
+    process.platform === "darwin"
+      ? "open"
+      : process.platform === "win32"
+        ? "start"
+        : "xdg-open";
+  try {
+    execSync(`${cmd} http://localhost:${p}/dashboard`, { stdio: "ignore" });
+  } catch {
+    // ignore
+  }
 }
 
 server.on("close", (code) => process.exit(code ?? 0));

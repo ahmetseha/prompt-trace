@@ -25,7 +25,11 @@ const navigation = [
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  isDemo?: boolean;
+}
+
+export function AppSidebar({ isDemo = false }: AppSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -37,9 +41,11 @@ export function AppSidebar() {
         <span className="text-sm font-semibold tracking-tight">
           PromptTrace
         </span>
-        <span className="ml-auto rounded-md bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400">
-          DEMO
-        </span>
+        {isDemo && (
+          <span className="ml-auto rounded-md bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400">
+            DEMO
+          </span>
+        )}
       </div>
 
       <div className="px-3 py-3">
@@ -76,15 +82,19 @@ export function AppSidebar() {
         })}
       </nav>
 
-      <div className="border-t border-zinc-800 p-3">
-        <div className="rounded-lg bg-zinc-900 p-3">
-          <p className="text-xs font-medium text-zinc-300">Demo Mode Active</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
-            Viewing sample data. Connect real sources in Settings to analyze your
-            prompts.
-          </p>
+      {isDemo && (
+        <div className="border-t border-zinc-800 p-3">
+          <div className="rounded-lg bg-zinc-900 p-3">
+            <p className="text-xs font-medium text-zinc-300">
+              Demo Mode Active
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+              Viewing sample data. Connect real sources in Settings to analyze
+              your prompts.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </aside>
   );
 }
