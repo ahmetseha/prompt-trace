@@ -75,13 +75,13 @@ export function DashboardContent({
         />
         <StatsCard
           title="Avg Reuse Score"
-          value={`${stats.avgReuseScore}%`}
+          value={`${Math.round(stats.avgReuseScore)}%`}
           icon={Target}
           trend={{ value: 5, label: "improving" }}
         />
         <StatsCard
           title="Success Rate"
-          value={`${stats.avgSuccessScore}%`}
+          value={`${Math.round(stats.avgSuccessScore)}%`}
           icon={TrendingUp}
           description="Estimated from heuristics"
         />
@@ -101,16 +101,16 @@ export function DashboardContent({
           <div className="mt-4 space-y-3">
             {stats.topProjects.map((project) => (
               <div key={project.id} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FolderOpen className="h-3.5 w-3.5 text-zinc-500" />
-                  <span className="text-sm text-zinc-300">{project.name}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <FolderOpen className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+                  <span className="truncate text-sm text-zinc-300">{project.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-20 overflow-hidden rounded-full bg-zinc-800">
                     <div
                       className="h-full rounded-full bg-indigo-500"
                       style={{
-                        width: `${(project.promptCount / stats.totalPrompts) * 100}%`,
+                        width: `${Math.min(Math.round((project.promptCount / stats.totalPrompts) * 100), 100)}%`,
                       }}
                     />
                   </div>

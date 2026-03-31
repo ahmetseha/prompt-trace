@@ -264,7 +264,7 @@ function StatBlock({
         <Icon className="h-3.5 w-3.5" />
         <span className="text-[11px] font-medium">{label}</span>
       </div>
-      <p className="mt-1.5 text-xl font-semibold tracking-tight text-zinc-100">{value}</p>
+      <p className="mt-1.5 truncate text-xl font-semibold tracking-tight text-zinc-100">{value}</p>
     </div>
   );
 }

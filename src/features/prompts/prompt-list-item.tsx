@@ -84,11 +84,11 @@ export function PromptListItem({
               <div className="h-1.5 w-16 overflow-hidden rounded-full bg-zinc-800">
                 <div
                   className="h-full rounded-full bg-violet-500"
-                  style={{ width: `${prompt.reuseScore}%` }}
+                  style={{ width: `${Math.min(Math.round(prompt.reuseScore), 100)}%` }}
                 />
               </div>
               <span className="w-7 text-right text-[11px] tabular-nums text-zinc-400">
-                {prompt.reuseScore}%
+                {Math.round(prompt.reuseScore)}%
               </span>
             </div>
           )}
@@ -100,11 +100,11 @@ export function PromptListItem({
               <div className="h-1.5 w-16 overflow-hidden rounded-full bg-zinc-800">
                 <div
                   className="h-full rounded-full bg-emerald-500"
-                  style={{ width: `${prompt.successScore}%` }}
+                  style={{ width: `${Math.min(Math.round(prompt.successScore), 100)}%` }}
                 />
               </div>
               <span className="w-7 text-right text-[11px] tabular-nums text-zinc-400">
-                {prompt.successScore}%
+                {Math.round(prompt.successScore)}%
               </span>
             </div>
           )}

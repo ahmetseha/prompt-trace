@@ -35,7 +35,7 @@ export function TopTemplates({ templates }: TopTemplatesProps) {
               <FileText className="h-3.5 w-3.5 text-indigo-400" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-zinc-200">
+              <p className="truncate text-sm font-medium text-zinc-200">
                 {template.title}
               </p>
               <p className="mt-0.5 text-xs text-zinc-500">

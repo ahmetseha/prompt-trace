@@ -31,7 +31,7 @@ export function TemplateCard({ template, className }: TemplateCardProps) {
     >
       {/* Title row */}
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-sm font-medium text-zinc-100">{template.title}</h3>
+        <h3 className="min-w-0 truncate text-sm font-medium text-zinc-100">{template.title}</h3>
         {template.category && <CategoryBadge category={template.category} />}
       </div>
 
@@ -67,7 +67,7 @@ export function TemplateCard({ template, className }: TemplateCardProps) {
                   ? "bg-amber-500"
                   : "bg-zinc-500"
             )}
-            style={{ width: `${reusePercent}%` }}
+            style={{ width: `${Math.min(reusePercent, 100)}%` }}
           />
         </div>
       </div>

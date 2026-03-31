@@ -216,13 +216,13 @@ export default async function PromptDetailPage({
                 <div className="mb-1.5 flex items-center justify-between text-sm">
                   <span className="text-zinc-400">Success Score</span>
                   <span className="tabular-nums text-zinc-200">
-                    {prompt.successScore ?? 0}%
+                    {Math.round(prompt.successScore ?? 0)}%
                   </span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
                   <div
                     className="h-full rounded-full bg-emerald-500 transition-all"
-                    style={{ width: `${prompt.successScore ?? 0}%` }}
+                    style={{ width: `${Math.min(Math.round(prompt.successScore ?? 0), 100)}%` }}
                   />
                 </div>
               </div>
@@ -232,13 +232,13 @@ export default async function PromptDetailPage({
                 <div className="mb-1.5 flex items-center justify-between text-sm">
                   <span className="text-zinc-400">Reuse Score</span>
                   <span className="tabular-nums text-zinc-200">
-                    {prompt.reuseScore ?? 0}%
+                    {Math.round(prompt.reuseScore ?? 0)}%
                   </span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
                   <div
                     className="h-full rounded-full bg-violet-500 transition-all"
-                    style={{ width: `${prompt.reuseScore ?? 0}%` }}
+                    style={{ width: `${Math.min(Math.round(prompt.reuseScore ?? 0), 100)}%` }}
                   />
                 </div>
               </div>

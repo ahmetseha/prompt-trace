@@ -31,8 +31,8 @@ export function StatsCard({
         <p className="text-xs font-medium text-zinc-400">{title}</p>
         <Icon className="h-4 w-4 text-zinc-500" />
       </div>
-      <div className="mt-3">
-        <p className="text-2xl font-semibold tracking-tight">{value}</p>
+      <div className="mt-3 min-w-0">
+        <p className="truncate text-2xl font-semibold tracking-tight">{value}</p>
         {description && (
           <p className="mt-1 text-xs text-zinc-500">{description}</p>
         )}

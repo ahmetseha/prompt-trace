@@ -96,7 +96,7 @@ export default async function SessionDetailPage({
 
       {/* Header */}
       <div>
-        <h1 className="text-xl font-semibold text-zinc-100">
+        <h1 className="truncate text-xl font-semibold text-zinc-100">
           {session.title ?? "Untitled Session"}
         </h1>
         <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-zinc-400">

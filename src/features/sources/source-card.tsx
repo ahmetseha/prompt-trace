@@ -93,7 +93,7 @@ export function SourceCard({ source, promptCount }: SourceCardProps) {
             <SourceIcon type={source.type} size="md" />
           </div>
           <div>
-            <h3 className="text-sm font-medium text-zinc-100">{source.name}</h3>
+            <h3 className="truncate text-sm font-medium text-zinc-100">{source.name}</h3>
             <p className="text-xs text-zinc-500">
               {getSourceLabel(source.type)}
             </p>
