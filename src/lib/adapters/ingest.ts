@@ -1,16 +1,18 @@
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import type { IngestResult } from "./runner";
 import { parseSource, transformParsedData } from "./runner";
 import { getAdapter } from "./index";
-import { generateId } from "@/lib/utils";
 
 /**
  * Ingest data from a source adapter into the database.
  *
- * 1. Parses raw data from the filesystem via the adapter
- * 2. Transforms into database entities
- * 3. Inserts with conflict-safe upsert behavior
+ * Uses a deterministic source ID based on adapter type so re-scans
+ * update existing data instead of creating duplicates.
+ *
+ * Strategy: delete all data for this source, then re-insert fresh.
+ * This avoids duplicate detection complexity and ensures clean state.
  */
 export async function ingestSource(
   sourceType: string,
@@ -29,6 +31,9 @@ export async function ingestSource(
     };
   }
 
+  // Deterministic source ID - same adapter always uses same ID
+  const sourceId = `src-${sourceType}`;
+
   // 1. Parse raw data
   let parsed;
   try {
@@ -36,7 +41,7 @@ export async function ingestSource(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return {
-      sourceId: "",
+      sourceId,
       promptsIngested: 0,
       sessionsCreated: 0,
       projectsFound: 0,
@@ -46,7 +51,7 @@ export async function ingestSource(
 
   if (parsed.length === 0) {
     return {
-      sourceId: "",
+      sourceId,
       promptsIngested: 0,
       sessionsCreated: 0,
       projectsFound: 0,
@@ -54,100 +59,92 @@ export async function ingestSource(
     };
   }
 
-  // 2. Transform into DB entities
-  const sourceId = generateId();
-  const data = transformParsedData(parsed, sourceId);
+  // 2. Clean old data for this source (delete in FK order)
+  try {
+    // Get prompt IDs for this source to clean related tables
+    const oldPrompts = db
+      .select({ id: schema.prompts.id })
+      .from(schema.prompts)
+      .where(eq(schema.prompts.sourceId, sourceId))
+      .all();
+    const oldPromptIds = oldPrompts.map((p) => p.id);
 
-  // Update source with proper name/type from adapter
+    // Delete prompt files and tags for old prompts
+    for (const pid of oldPromptIds) {
+      db.delete(schema.promptFiles).where(eq(schema.promptFiles.promptId, pid)).run();
+      db.delete(schema.promptTags).where(eq(schema.promptTags.promptId, pid)).run();
+    }
+
+    // Delete prompts, sessions for this source
+    db.delete(schema.prompts).where(eq(schema.prompts.sourceId, sourceId)).run();
+    db.delete(schema.sessions).where(eq(schema.sessions.sourceId, sourceId)).run();
+
+    // Delete the source itself (will be re-created)
+    db.delete(schema.sources).where(eq(schema.sources.id, sourceId)).run();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    errors.push(`Cleanup warning: ${msg}`);
+  }
+
+  // 3. Transform into DB entities
+  const data = transformParsedData(parsed, sourceId);
+  data.source.id = sourceId;
   data.source.name = adapter.name;
   data.source.type = adapter.type;
 
-  // 3. Insert into database in order
+  // 4. Insert fresh data
   try {
-    // Source
-    await db
-      .insert(schema.sources)
-      .values(data.source)
-      .onConflictDoNothing();
+    db.insert(schema.sources).values(data.source).run();
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     errors.push(`Failed to insert source: ${msg}`);
   }
 
-  // Projects
+  // Projects - use upsert (same project can come from multiple sources)
   for (const project of data.projects) {
     try {
-      await db
-        .insert(schema.projects)
-        .values(project)
-        .onConflictDoNothing();
+      db.insert(schema.projects).values(project).onConflictDoNothing().run();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`Failed to insert project ${project.name}: ${msg}`);
+      errors.push(`Failed to insert project: ${msg}`);
     }
   }
 
-  // Sessions
   for (const session of data.sessions) {
     try {
-      await db
-        .insert(schema.sessions)
-        .values(session)
-        .onConflictDoNothing();
+      db.insert(schema.sessions).values(session).run();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`Failed to insert session: ${msg}`);
     }
   }
 
-  // Prompts - batch insert for performance
-  const BATCH_SIZE = 100;
+  const BATCH_SIZE = 50;
   for (let i = 0; i < data.prompts.length; i += BATCH_SIZE) {
     const batch = data.prompts.slice(i, i + BATCH_SIZE);
     try {
-      await db
-        .insert(schema.prompts)
-        .values(batch)
-        .onConflictDoNothing();
+      for (const p of batch) {
+        db.insert(schema.prompts).values(p).run();
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`Failed to insert prompts batch ${i}: ${msg}`);
+      errors.push(`Failed to insert prompts: ${msg}`);
     }
   }
 
-  // Prompt files
-  if (data.promptFiles.length > 0) {
-    for (let i = 0; i < data.promptFiles.length; i += BATCH_SIZE) {
-      const batch = data.promptFiles.slice(i, i + BATCH_SIZE);
-      try {
-        await db
-          .insert(schema.promptFiles)
-          .values(batch)
-          .onConflictDoNothing();
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        errors.push(`Failed to insert prompt files batch ${i}: ${msg}`);
-      }
-    }
+  for (const pf of data.promptFiles) {
+    try {
+      db.insert(schema.promptFiles).values(pf).run();
+    } catch (err) { /* skip duplicates */ }
   }
 
-  // Prompt tags
-  if (data.promptTags.length > 0) {
-    for (let i = 0; i < data.promptTags.length; i += BATCH_SIZE) {
-      const batch = data.promptTags.slice(i, i + BATCH_SIZE);
-      try {
-        await db
-          .insert(schema.promptTags)
-          .values(batch)
-          .onConflictDoNothing();
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        errors.push(`Failed to insert prompt tags batch ${i}: ${msg}`);
-      }
-    }
+  for (const pt of data.promptTags) {
+    try {
+      db.insert(schema.promptTags).values(pt).run();
+    } catch (err) { /* skip duplicates */ }
   }
 
-  // 4. Refresh template candidates from all prompts
+  // 5. Refresh templates
   try {
     const allPrompts = db.select().from(schema.prompts).all();
     const { refreshTemplates } = await import("@/lib/templates");

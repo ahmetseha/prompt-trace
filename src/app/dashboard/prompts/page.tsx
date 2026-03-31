@@ -2,10 +2,7 @@ import {
   getAllPrompts,
   getAllSources,
   getAllProjects,
-  getProjectFiles,
 } from "@/lib/data";
-import { demoPromptFiles } from "@/lib/demo/data";
-import { isDemoMode } from "@/lib/demo";
 import { PromptsExplorer } from "@/features/prompts/prompts-explorer";
 
 export default async function PromptsPage() {
@@ -14,11 +11,6 @@ export default async function PromptsPage() {
     getAllSources(),
     getAllProjects(),
   ]);
-
-  // For prompt files, in demo mode use the full array; in DB mode, we'd need
-  // a different approach. For now, pass demo files when in demo mode.
-  // TODO: Add a getAllPromptFiles() query for DB mode
-  const promptFiles = isDemoMode() ? demoPromptFiles : demoPromptFiles;
 
   return (
     <div className="space-y-6">
@@ -33,7 +25,7 @@ export default async function PromptsPage() {
         prompts={prompts}
         sources={sources}
         projects={projects}
-        promptFiles={promptFiles}
+        promptFiles={[]}
       />
     </div>
   );

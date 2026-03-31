@@ -179,6 +179,7 @@ export function transformParsedData(
       endedAt: number;
       promptCount: number;
       models: Set<string>;
+      title: string | null;
     }
   >();
   const sessionIdMap = new Map<string, string>(); // externalSessionId -> internal id
@@ -193,14 +194,27 @@ export function transformParsedData(
       if (p.model) existing.models.add(p.model);
     } else {
       const id = generateId();
+      const sessionTitle = (p.rawMetadata?.sessionTitle as string) || null;
       sessionMap.set(sessKey, {
         projectKey: p.projectPath || p.projectName || "unknown",
         startedAt: p.timestamp,
         endedAt: p.timestamp,
         promptCount: 1,
         models: new Set(p.model ? [p.model] : []),
+        title: sessionTitle,
       });
       sessionIdMap.set(sessKey, id);
+    }
+  }
+
+  // Generate fallback titles from first prompt text in each session
+  for (const p of parsed) {
+    const sessKey = p.sessionId || "unknown";
+    const sess = sessionMap.get(sessKey);
+    if (sess && !sess.title) {
+      // Use first 60 chars of prompt as title
+      const text = p.promptText.trim().replace(/\s+/g, " ");
+      sess.title = text.length > 60 ? text.slice(0, 57) + "..." : text;
     }
   }
 
@@ -212,7 +226,7 @@ export function transformParsedData(
       sourceId,
       projectId,
       externalSessionId: extId,
-      title: null,
+      title: data.title,
       startedAt: data.startedAt,
       endedAt: data.endedAt,
       promptCount: data.promptCount,
