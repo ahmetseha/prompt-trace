@@ -52,7 +52,7 @@ const noCache = args.includes("--no-cache");
 const scanOnly = args[0] === "scan";
 
 console.log("");
-console.log("  PromptTrace v0.2.1");
+console.log("  PromptTrace v0.2.2");
 console.log("  Local-first prompt intelligence for developers");
 console.log("");
 
@@ -107,7 +107,7 @@ if (needsSetup) {
     if (existsSync(lockFile)) rmSync(lockFile);
 
     console.log(" installing deps...");
-    execSync("npm install --omit=dev --no-audit --no-fund", {
+    execSync("npm install --no-audit --no-fund", {
       cwd: APP_DIR,
       stdio: ["ignore", "ignore", "inherit"],
     });
@@ -117,6 +117,12 @@ if (needsSetup) {
       `${process.execPath} ${join(APP_DIR, "node_modules", ".bin", "next")} build`,
       { cwd: APP_DIR, stdio: ["ignore", "ignore", "inherit"] }
     );
+
+    // Clean dev deps after build to save space
+    execSync("npm prune --omit=dev --no-audit --no-fund", {
+      cwd: APP_DIR,
+      stdio: ["ignore", "ignore", "ignore"],
+    });
   }
 
   writeFileSync(versionFile, currentVersion);
