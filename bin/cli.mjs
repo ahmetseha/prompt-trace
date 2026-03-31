@@ -52,7 +52,7 @@ const noCache = args.includes("--no-cache");
 const scanOnly = args[0] === "scan";
 
 console.log("");
-console.log("  PromptTrace v0.2.5");
+console.log("  PromptTrace v0.2.6");
 console.log("  Local-first prompt intelligence for developers");
 console.log("");
 
@@ -144,7 +144,6 @@ let serverEnv = {
   PORT: port,
   HOSTNAME: "0.0.0.0",
   NODE_ENV: "production",
-  PROMPTTRACE_CLI: "1",
 };
 
 if (useStandalone) {
