@@ -7,3 +7,5 @@ data/prompttrace.db*
 tsconfig.tsbuildinfo
 NASIL-CALISIR.md
 README.tr.md
+docs/site/
+docs/screenshots/

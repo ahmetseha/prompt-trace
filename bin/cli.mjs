@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { execSync, execFileSync, spawn } from "child_process";
+import { execSync, spawn } from "child_process";
 import { existsSync, mkdirSync, cpSync, readFileSync, writeFileSync, rmSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -43,21 +43,9 @@ function findFreePort(startPort) {
   });
 }
 
-// --- Cross-platform helpers ---
-function q(p) { return `"${p}"`; }
-
-function npmRun(cmdArgs, cwd, stdio) {
-  const npmCmd = IS_WIN ? "npm.cmd" : "npm";
-  execFileSync(npmCmd, cmdArgs, { cwd, stdio });
-}
-
-function nextBinPath() {
-  const bin = join(APP_DIR, "node_modules", ".bin", IS_WIN ? "next.cmd" : "next");
-  return bin;
-}
-
-function runNext(cmdArgs, cwd, stdio) {
-  execFileSync(nextBinPath(), cmdArgs, { cwd, stdio, env: { ...process.env, NODE_ENV: "production" } });
+// --- Cross-platform shell exec (handles spaces in paths) ---
+function run(cmd, cwd, stdio) {
+  execSync(cmd, { cwd, stdio, shell: true });
 }
 
 function openBrowser(url) {
@@ -72,6 +60,10 @@ function openBrowser(url) {
   } catch { /* ignore */ }
 }
 
+function nextBin() {
+  return JSON.stringify(join(APP_DIR, "node_modules", ".bin", "next"));
+}
+
 const requestedPort = args.includes("--port")
   ? parseInt(args[args.indexOf("--port") + 1], 10)
   : 3001;
@@ -82,7 +74,7 @@ const noCache = args.includes("--no-cache");
 const scanOnly = args[0] === "scan";
 
 console.log("");
-console.log("  PromptTrace v0.2.8");
+console.log("  PromptTrace v0.2.9");
 console.log("  Local-first prompt intelligence for developers");
 console.log("");
 
@@ -121,7 +113,7 @@ if (needsSetup) {
     }
 
     // Copy source
-    for (const dir of ["src", "scripts", "docs"]) {
+    for (const dir of ["src", "docs"]) {
       const src = join(pkgRoot, dir);
       if (existsSync(src)) cpSync(src, join(APP_DIR, dir), { recursive: true, force: true });
     }
@@ -132,10 +124,10 @@ if (needsSetup) {
     mkdirSync(join(APP_DIR, "public"), { recursive: true });
 
     console.log(" installing deps...");
-    npmRun(["install", "--no-audit", "--no-fund"], APP_DIR, ["ignore", "ignore", "inherit"]);
+    run("npm install --no-audit --no-fund 2>&1", APP_DIR, ["ignore", "ignore", "inherit"]);
 
     process.stdout.write("  Building dashboard...");
-    runNext(["build"], APP_DIR, ["ignore", "ignore", "inherit"]);
+    run(`${nextBin()} build`, APP_DIR, ["ignore", "ignore", "inherit"]);
   }
 
   writeFileSync(versionFile, currentVersion);
@@ -148,11 +140,14 @@ mkdirSync(DATA_DIR, { recursive: true });
 
 const dbPath = join(DATA_DIR, "prompttrace.db");
 
-// --- Determine server entry ---
+// --- Determine server command ---
 const standaloneServer = join(APP_DIR, "server.js");
 const useStandalone = existsSync(standaloneServer);
 
-let serverArgs;
+const serverCmd = useStandalone
+  ? `${JSON.stringify(process.execPath)} ${JSON.stringify(standaloneServer)}`
+  : `${nextBin()} start -p ${port}`;
+
 const serverEnv = {
   ...process.env,
   PORT: port,
@@ -160,33 +155,23 @@ const serverEnv = {
   NODE_ENV: "production",
 };
 
-if (useStandalone) {
-  serverArgs = [standaloneServer];
-} else {
-  serverArgs = [nextBinPath(), "start", "-p", port];
-}
-
 // --- Scan only mode ---
 if (scanOnly) {
   process.stdout.write("  Starting server for scanning...");
-  const srv = spawn(process.execPath, serverArgs, {
-    cwd: APP_DIR,
-    stdio: "ignore",
-    detached: true,
-    env: serverEnv,
-  });
+  const srv = spawn(serverCmd, { cwd: APP_DIR, stdio: "ignore", shell: true, detached: true, env: serverEnv });
   await waitForServer(port, 20000);
   console.log(" ready.");
   await runIngest(port);
-  srv.kill();
+  try { process.kill(-srv.pid); } catch { srv.kill(); }
   console.log("  Done.");
   process.exit(0);
 }
 
 // --- Start server ---
-const server = spawn(process.execPath, serverArgs, {
+const server = spawn(serverCmd, {
   cwd: APP_DIR,
   stdio: ["ignore", "pipe", "inherit"],
+  shell: true,
   env: serverEnv,
 });
 
@@ -214,8 +199,8 @@ server.stdout?.on("data", () => {});
 })();
 
 server.on("close", (code) => process.exit(code ?? 0));
-process.on("SIGINT", () => { server.kill("SIGINT"); process.exit(0); });
-process.on("SIGTERM", () => { server.kill("SIGTERM"); process.exit(0); });
+process.on("SIGINT", () => { server.kill(); process.exit(0); });
+process.on("SIGTERM", () => { server.kill(); process.exit(0); });
 
 // --- Helpers ---
 
