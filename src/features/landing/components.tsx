@@ -731,14 +731,14 @@ export function Footer() {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-zinc-500">
-          <a href="#" className="hover:text-zinc-300 transition-colors flex items-center gap-1">
+          <a href="https://github.com/ahmetseha/prompt-trace" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors flex items-center gap-1">
             <Code className="h-3.5 w-3.5" />
             GitHub
           </a>
-          <a href="#" className="hover:text-zinc-300 transition-colors">
+          <a href="https://github.com/ahmetseha/prompt-trace/tree/main/docs" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors">
             Documentation
           </a>
-          <a href="#" className="hover:text-zinc-300 transition-colors">
+          <a href="https://github.com/ahmetseha/prompt-trace/blob/main/docs/contributing.md" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors">
             Contributing
           </a>
         </div>

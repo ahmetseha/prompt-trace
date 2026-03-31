@@ -9,7 +9,7 @@
 ## Installation
 
 ```bash
-git clone https://github.com/user/prompttrace.git
+git clone https://github.com/ahmetseha/prompt-trace.git
 cd prompttrace
 npm install
 ```

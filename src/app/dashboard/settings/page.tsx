@@ -349,7 +349,7 @@ export default function SettingsPage() {
 
         <div className="flex gap-3 pt-2">
           <a
-            href="https://github.com/prompttrace/prompttrace"
+            href="https://github.com/ahmetseha/prompt-trace"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-700"
@@ -358,7 +358,7 @@ export default function SettingsPage() {
             View on GitHub
           </a>
           <a
-            href="https://github.com/prompttrace/prompttrace/issues/new"
+            href="https://github.com/ahmetseha/prompt-trace/issues/new"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-700"

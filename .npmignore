@@ -1,0 +1,9 @@
+.next/
+node_modules/
+data/prompttrace.db*
+.git/
+.claude/
+.DS_Store
+tsconfig.tsbuildinfo
+NASIL-CALISIR.md
+README.tr.md

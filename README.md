@@ -22,7 +22,7 @@ PromptTrace scans your AI coding assistant histories -- Cursor, Claude Code, Cop
 ## Quick Start
 
 ```bash
-git clone https://github.com/user/prompttrace.git
+git clone https://github.com/ahmetseha/prompt-trace.git
 cd prompttrace
 npm install
 npm run db:seed

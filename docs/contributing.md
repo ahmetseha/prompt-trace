@@ -13,7 +13,7 @@ Contributions to PromptTrace are welcome. This document covers the development s
 ### Setup
 
 ```bash
-git clone https://github.com/user/prompttrace.git
+git clone https://github.com/ahmetseha/prompt-trace.git
 cd prompttrace
 npm install
 npm run db:seed

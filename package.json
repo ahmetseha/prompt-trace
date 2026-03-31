@@ -1,8 +1,35 @@
 {
   "name": "prompttrace",
   "version": "0.1.0",
-  "private": true,
   "description": "Local-first prompt intelligence for developers. Analyze, search, and improve your AI prompting workflow.",
+  "bin": {
+    "prompttrace": "./bin/cli.mjs"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "public/",
+    "docs/",
+    "scripts/",
+    "data/",
+    "next.config.ts",
+    "tsconfig.json",
+    "postcss.config.mjs",
+    "drizzle.config.ts",
+    "next-env.d.ts",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ahmetseha/prompt-trace.git"
+  },
+  "homepage": "https://github.com/ahmetseha/prompt-trace",
+  "bugs": {
+    "url": "https://github.com/ahmetseha/prompt-trace/issues"
+  },
+  "author": "ahmetseha",
   "scripts": {
     "dev": "next dev --turbopack -p 3001",
     "build": "next build",
