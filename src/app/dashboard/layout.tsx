@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { TopBar } from "@/components/top-bar";
 import { CommandPalette } from "@/components/command-palette";
+import { AutoScan } from "@/components/auto-scan";
 
 export default function DashboardLayout({
   children,
@@ -15,6 +16,7 @@ export default function DashboardLayout({
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
       <CommandPalette />
+      <AutoScan />
     </div>
   );
 }

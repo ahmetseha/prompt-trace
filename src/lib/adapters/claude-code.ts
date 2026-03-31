@@ -123,6 +123,14 @@ async function parseJsonlFile(
     const promptText = extractTextFromContent(content);
     if (!promptText.trim()) continue;
 
+    // Skip noise: IDE metadata, interrupted requests, tool results
+    const trimmed = promptText.trim();
+    if (/^\[Request interrupted/i.test(trimmed)) continue;
+    if (/^<ide_/i.test(trimmed)) continue;
+    if (/^<local-command/i.test(trimmed)) continue;
+    if (/^Tool loaded\.?$/i.test(trimmed)) continue;
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed)) continue;
+
     // Find next assistant message
     let assistantMsg: Record<string, unknown> | undefined;
     for (let j = i + 1; j < messages.length; j++) {

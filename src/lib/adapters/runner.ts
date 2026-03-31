@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import { getAdapter, getAllAdapters, type ParsedPrompt } from "./index";
 import { classifyPrompt } from "@/lib/classification";
 import { scorePrompt } from "@/lib/scoring";
@@ -10,6 +11,12 @@ import type {
   PromptFile,
   PromptTag,
 } from "@/lib/types";
+
+/** Deterministic ID from a string key - same input always gives same ID */
+function stableId(prefix: string, key: string): string {
+  const hash = createHash("sha256").update(key).digest("hex").slice(0, 16);
+  return `${prefix}-${hash}`;
+}
 
 export interface IngestResult {
   sourceId: string;
@@ -146,7 +153,8 @@ export function transformParsedData(
       existing.firstSeen = Math.min(existing.firstSeen, p.timestamp);
       existing.lastSeen = Math.max(existing.lastSeen, p.timestamp);
     } else {
-      const id = generateId();
+      const projName = p.projectName || "unknown";
+      const id = stableId("proj", projName);
       projectMap.set(key, {
         name: p.projectName || "unknown",
         path: p.projectPath || key,
@@ -193,7 +201,7 @@ export function transformParsedData(
       existing.promptCount++;
       if (p.model) existing.models.add(p.model);
     } else {
-      const id = generateId();
+      const id = stableId("sess", `${sourceId}:${sessKey}`);
       const sessionTitle = (p.rawMetadata?.sessionTitle as string) || null;
       sessionMap.set(sessKey, {
         projectKey: p.projectPath || p.projectName || "unknown",
@@ -246,7 +254,7 @@ export function transformParsedData(
   const promptTags: PromptTag[] = [];
 
   for (const p of parsed) {
-    const promptId = generateId();
+    const promptId = stableId("p", `${sourceId}:${p.sessionId || ""}:${p.timestamp}:${p.promptText.slice(0, 50)}`);
     const projectKey = p.projectPath || p.projectName || "unknown";
     const projectId = projectIdMap.get(projectKey) || null;
     const sessionInternalId = sessionIdMap.get(p.sessionId || "unknown") || null;

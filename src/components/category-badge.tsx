@@ -57,6 +57,10 @@ const categoryConfig: Record<
     label: "Review",
     className: "bg-slate-500/10 text-slate-400 border-slate-500/20",
   },
+  general: {
+    label: "General",
+    className: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  },
   unknown: {
     label: "Other",
     className: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
@@ -98,6 +102,7 @@ export function getCategoryColor(category: PromptCategory): string {
     performance: "#f59e0b",
     exploratory: "#a78bfa",
     review: "#64748b",
+    general: "#71717a",
     unknown: "#71717a",
   };
   return colors[category] ?? colors.unknown;

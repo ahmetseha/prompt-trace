@@ -75,9 +75,30 @@ export async function ingestSource(
       db.delete(schema.promptTags).where(eq(schema.promptTags.promptId, pid)).run();
     }
 
+    // Collect project IDs that belong to this source's sessions
+    const oldSessions = db
+      .select({ projectId: schema.sessions.projectId })
+      .from(schema.sessions)
+      .where(eq(schema.sessions.sourceId, sourceId))
+      .all();
+    const projectIds = new Set(oldSessions.map((s) => s.projectId).filter(Boolean));
+
     // Delete prompts, sessions for this source
     db.delete(schema.prompts).where(eq(schema.prompts.sourceId, sourceId)).run();
     db.delete(schema.sessions).where(eq(schema.sessions.sourceId, sourceId)).run();
+
+    // Delete orphan projects (projects with no remaining sessions)
+    for (const pid of projectIds) {
+      if (!pid) continue;
+      const remaining = db
+        .select({ id: schema.sessions.id })
+        .from(schema.sessions)
+        .where(eq(schema.sessions.projectId, pid))
+        .all();
+      if (remaining.length === 0) {
+        db.delete(schema.projects).where(eq(schema.projects.id, pid)).run();
+      }
+    }
 
     // Delete the source itself (will be re-created)
     db.delete(schema.sources).where(eq(schema.sources.id, sourceId)).run();

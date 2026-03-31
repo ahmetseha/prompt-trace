@@ -1,14 +1,8 @@
 import type { PromptCategory } from '@/lib/types';
 
-// ---------------------------------------------------------------------------
-// Weighted keyword lists per category
-// ---------------------------------------------------------------------------
-
 interface CategoryRule {
   category: PromptCategory;
-  /** Each keyword carries an implicit weight of 1 unless overridden. */
   keywords: string[];
-  /** Patterns that earn bonus weight when matched (regex). */
   patterns?: RegExp[];
 }
 
@@ -19,8 +13,11 @@ const CATEGORY_RULES: CategoryRule[] = [
       'fix', 'bug', 'error', 'broken', 'crash', 'issue',
       'not working', 'fails', 'failure', 'fault', 'wrong output',
       'unexpected', 'regression', 'patch',
+      // Turkish
+      'hata', 'düzelt', 'bozuk', 'çalışmıyor', 'sorun', 'problem',
+      'beyaz ekran', 'çöküyor', 'patladı',
     ],
-    patterns: [/\bnot\s+work/i, /\bdoes\s?n['\u2019]?t\s+work/i],
+    patterns: [/\bnot\s+work/i, /\bdoes\s?n['\u2019]?t\s+work/i, /çalışmıyor/i, /hata\s*(veriyor|aldı|var)/i],
   },
   {
     category: 'refactor',
@@ -28,6 +25,7 @@ const CATEGORY_RULES: CategoryRule[] = [
       'refactor', 'clean up', 'simplify', 'restructure', 'extract',
       'reorganize', 'rename', 'decouple', 'split into', 'DRY',
       'reduce duplication', 'consolidate',
+      'temizle', 'sadeleştir', 'yeniden yapılandır', 'ayır', 'böl',
     ],
   },
   {
@@ -36,8 +34,10 @@ const CATEGORY_RULES: CategoryRule[] = [
       'create', 'generate', 'build', 'implement', 'write', 'add a',
       'make a', 'scaffold', 'boilerplate', 'new component', 'new file',
       'starter', 'from scratch', 'set up',
+      'oluştur', 'yaz', 'ekle', 'yap', 'hazırla', 'kur',
+      'kodla', 'geliştir', 'entegre et', 'bağla',
     ],
-    patterns: [/\b(create|build|write|add)\s+(a|an|the)\b/i],
+    patterns: [/\b(create|build|write|add)\s+(a|an|the)\b/i, /oluştur/i, /entegre\s+et/i],
   },
   {
     category: 'debugging',
@@ -45,8 +45,9 @@ const CATEGORY_RULES: CategoryRule[] = [
       'debug', 'trace', 'inspect', 'why does', 'what causes',
       'stack trace', 'console.log', 'breakpoint', 'log output',
       'step through', 'root cause', 'diagnose',
+      'neden', 'niye', 'sebebi ne', 'kontrol et', 'incele', 'bak',
     ],
-    patterns: [/\bwhy\s+(does|is|do|are|did)\b/i, /\bwhat\s+causes?\b/i],
+    patterns: [/\bwhy\s+(does|is|do|are|did)\b/i, /\bwhat\s+causes?\b/i, /neden\s+(böyle|oluyor|çalış)/i],
   },
   {
     category: 'testing',
@@ -63,6 +64,7 @@ const CATEGORY_RULES: CategoryRule[] = [
       'font', 'UI', 'design', 'animation', 'theme', 'dark mode',
       'spacing', 'grid', 'flexbox', 'pixel', 'margin', 'padding',
       'scss', 'styled-components',
+      'tasarım', 'renk', 'sayfa', 'görünüm', 'tema', 'ikon',
     ],
   },
   {
@@ -71,6 +73,7 @@ const CATEGORY_RULES: CategoryRule[] = [
       'document', 'readme', 'jsdoc', 'comment', 'explain the code',
       'docstring', 'changelog', 'API docs', 'usage guide',
       'type docs', 'annotate', 'tsdoc',
+      'dokümantasyon', 'açıkla', 'anlat', 'md yaz', 'md hazırla',
     ],
   },
   {
@@ -80,6 +83,7 @@ const CATEGORY_RULES: CategoryRule[] = [
       'vercel', 'k8s', 'kubernetes', 'terraform', 'nginx',
       'github actions', 'dockerfile', 'compose', 'helm', 'aws',
       'production', 'staging', 'release',
+      'yayınla', 'publish', 'npm publish', 'push',
     ],
   },
   {
@@ -89,6 +93,7 @@ const CATEGORY_RULES: CategoryRule[] = [
       'query', 'REST', 'graphql', 'prisma', 'drizzle', 'mongoose',
       'ORM', 'table', 'column', 'foreign key', 'index', 'seed',
       'backend', 'server', 'route handler',
+      'veritabanı', 'tablo', 'sorgu', 'veri',
     ],
   },
   {
@@ -98,6 +103,7 @@ const CATEGORY_RULES: CategoryRule[] = [
       'memory', 'speed', 'latency', 'profiling', 'bottleneck',
       'tree-shaking', 'code splitting', 'memoize', 'useMemo',
       'useCallback', 'debounce', 'throttle',
+      'yavaş', 'hızlandır', 'optimize et',
     ],
   },
   {
@@ -107,6 +113,7 @@ const CATEGORY_RULES: CategoryRule[] = [
       'dependency', 'monorepo', 'microservice', 'folder structure',
       'separation of concerns', 'clean architecture', 'hexagonal',
       'event-driven', 'pub/sub', 'state management',
+      'mimari', 'yapı', 'klasör yapısı',
     ],
   },
   {
@@ -115,8 +122,10 @@ const CATEGORY_RULES: CategoryRule[] = [
       'explore', 'brainstorm', 'idea', 'what if', 'compare options',
       'suggest', 'help me think', 'pros and cons', 'trade-off',
       'approach', 'alternative', 'recommendation', 'which approach',
+      'nasıl', 'ne yapalım', 'önerin', 'fikir', 'karşılaştır',
+      'hangisi', 'sence', 'mantıklı',
     ],
-    patterns: [/\bwhat\s+if\b/i, /\bhelp\s+me\s+think\b/i],
+    patterns: [/\bwhat\s+if\b/i, /\bnasıl\b/i, /\bsence\b/i, /\bhangisi\b/i],
   },
   {
     category: 'review',
@@ -124,31 +133,38 @@ const CATEGORY_RULES: CategoryRule[] = [
       'review', 'audit', 'check', 'validate', 'improve', 'feedback',
       'code review', 'look over', 'critique', 'best practice',
       'security review', 'lint', 'smell',
+      'kontrol', 'gözden geçir', 'doğrula', 'iyileştir',
     ],
   },
 ];
 
-// ---------------------------------------------------------------------------
-// Scoring engine
-// ---------------------------------------------------------------------------
+/** Patterns that indicate noise/metadata, not real prompts */
+const NOISE_PATTERNS = [
+  /^\[Request interrupted/i,
+  /^<local-command/i,
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, // UUID only
+  /^Tool loaded\.?$/i,
+  /^<ide_/i,
+];
 
-/**
- * Classify a prompt into a `PromptCategory` using weighted keyword matching.
- * Returns the highest-scoring category, or `'unknown'` when no signal is found.
- */
 export function classifyCategory(promptText: string): PromptCategory {
   if (!promptText || promptText.trim().length === 0) return 'unknown';
 
-  const lower = promptText.toLowerCase();
+  const trimmed = promptText.trim();
+
+  // Filter noise - these aren't real prompts
+  for (const rx of NOISE_PATTERNS) {
+    if (rx.test(trimmed)) return 'unknown';
+  }
+
+  const lower = trimmed.toLowerCase();
   const scores = new Map<PromptCategory, number>();
 
   for (const rule of CATEGORY_RULES) {
     let score = 0;
 
-    // Keyword matching (case-insensitive)
     for (const kw of rule.keywords) {
       const kwLower = kw.toLowerCase();
-      // Count occurrences – each match adds 1 point
       let idx = 0;
       while (true) {
         const found = lower.indexOf(kwLower, idx);
@@ -158,7 +174,6 @@ export function classifyCategory(promptText: string): PromptCategory {
       }
     }
 
-    // Pattern matching – each regex match adds 1.5 points (bonus)
     if (rule.patterns) {
       for (const rx of rule.patterns) {
         if (rx.test(promptText)) {
@@ -172,9 +187,12 @@ export function classifyCategory(promptText: string): PromptCategory {
     }
   }
 
-  if (scores.size === 0) return 'unknown';
+  if (scores.size === 0) {
+    // Short general commands without keywords -> "general" instead of "unknown"
+    if (trimmed.length < 200) return 'general';
+    return 'unknown';
+  }
 
-  // Return category with highest score
   let best: PromptCategory = 'unknown';
   let bestScore = 0;
   for (const [cat, s] of scores) {

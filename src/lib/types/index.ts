@@ -16,6 +16,7 @@ export type PromptCategory =
   | 'performance'
   | 'exploratory'
   | 'review'
+  | 'general'
   | 'unknown';
 
 export type PromptIntent =
