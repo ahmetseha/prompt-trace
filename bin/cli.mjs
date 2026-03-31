@@ -52,7 +52,7 @@ const noCache = args.includes("--no-cache");
 const scanOnly = args[0] === "scan";
 
 console.log("");
-console.log("  PromptTrace v0.2.2");
+console.log("  PromptTrace v0.2.3");
 console.log("  Local-first prompt intelligence for developers");
 console.log("");
 
@@ -88,7 +88,15 @@ if (needsSetup) {
       cpSync(staticDir, destStatic, { recursive: true, force: true });
     }
   } else {
-    // Fallback: copy source and build
+    // Clean old artifacts on update to avoid stale deps
+    const oldModules = join(APP_DIR, "node_modules");
+    const oldNext = join(APP_DIR, ".next");
+    const oldLock = join(APP_DIR, "package-lock.json");
+    if (existsSync(oldModules)) rmSync(oldModules, { recursive: true, force: true });
+    if (existsSync(oldNext)) rmSync(oldNext, { recursive: true, force: true });
+    if (existsSync(oldLock)) rmSync(oldLock);
+
+    // Copy source files
     const copyDirs = ["src", "scripts", "docs"];
     const copyFiles = ["package.json", "tsconfig.json", "next.config.ts", "postcss.config.mjs", "next-env.d.ts"];
 
@@ -102,10 +110,6 @@ if (needsSetup) {
     }
     mkdirSync(join(APP_DIR, "public"), { recursive: true });
 
-    // Remove stale lockfile
-    const lockFile = join(APP_DIR, "package-lock.json");
-    if (existsSync(lockFile)) rmSync(lockFile);
-
     console.log(" installing deps...");
     execSync("npm install --no-audit --no-fund", {
       cwd: APP_DIR,
@@ -117,12 +121,6 @@ if (needsSetup) {
       `${process.execPath} ${join(APP_DIR, "node_modules", ".bin", "next")} build`,
       { cwd: APP_DIR, stdio: ["ignore", "ignore", "inherit"] }
     );
-
-    // Clean dev deps after build to save space
-    execSync("npm prune --omit=dev --no-audit --no-fund", {
-      cwd: APP_DIR,
-      stdio: ["ignore", "ignore", "ignore"],
-    });
   }
 
   writeFileSync(versionFile, currentVersion);
