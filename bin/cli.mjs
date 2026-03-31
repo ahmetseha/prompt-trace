@@ -74,7 +74,7 @@ const noCache = args.includes("--no-cache");
 const scanOnly = args[0] === "scan";
 
 console.log("");
-console.log("  PromptTrace v0.2.9");
+console.log("  PromptTrace v0.3.0");
 console.log("  Local-first prompt intelligence for developers");
 console.log("");
 
