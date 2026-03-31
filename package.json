@@ -1,6 +1,6 @@
 {
   "name": "prompttrace",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Local-first prompt intelligence for developers. Analyze, search, and improve your AI prompting workflow.",
   "bin": {
     "prompttrace": "bin/cli.mjs"

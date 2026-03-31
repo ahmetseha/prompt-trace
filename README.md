@@ -4,7 +4,7 @@
 
 PromptTrace scans your AI coding assistant histories -- Cursor, Claude Code, Copilot, Gemini CLI, and Codex CLI -- and transforms them into a structured prompt intelligence dashboard. All data stays on your machine; nothing leaves your local environment.
 
-![PromptTrace Dashboard](docs/screenshots/dashboard.png)
+![PromptTrace Dashboard](docs/screenshots/image.png)
 
 ## Features
 

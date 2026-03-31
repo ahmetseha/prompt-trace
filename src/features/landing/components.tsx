@@ -2,28 +2,25 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import type { Easing } from "framer-motion";
 import {
   Zap,
   Code,
   GitBranch,
+  Terminal,
   HardDrive,
   Database,
   ShieldCheck,
   Lock,
   Plug,
-  AlertTriangle,
-  Repeat,
-  Layers,
-  BookOpen,
   ScanSearch,
   Tags,
   FileText,
   Clock,
   BarChart3,
   Search,
-  Terminal,
   ChevronDown,
   ArrowRight,
   Copy,
@@ -34,107 +31,35 @@ import {
   FolderSearch,
   FileJson,
   FileCode,
+  Activity,
+  Sparkles,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// ---------------------------------------------------------------------------
-// Animation helpers
-// ---------------------------------------------------------------------------
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" as Easing },
-  },
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as Easing } },
 };
 
 const fadeIn = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.5 } },
+  visible: { opacity: 1, transition: { duration: 0.6 } },
 };
 
 const stagger = {
-  visible: { transition: { staggerChildren: 0.08 } },
+  visible: { transition: { staggerChildren: 0.06 } },
 };
 
-// ---------------------------------------------------------------------------
-// CopyButton
-// ---------------------------------------------------------------------------
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
-      onClick={() => {
-        navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }}
+      onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
       className="text-zinc-500 hover:text-zinc-300 transition-colors"
-      aria-label="Copy to clipboard"
     >
-      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// TerminalSnippet
-// ---------------------------------------------------------------------------
-function TerminalSnippet({ command, className }: { command: string; className?: string }) {
-  return (
-    <div
-      className={cn(
-        "flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-950 px-5 py-3 font-mono text-sm",
-        className
-      )}
-    >
-      <span className="text-zinc-500 select-none">$</span>
-      <span className="text-zinc-300">{command}</span>
-      <CopyButton text={command} />
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Section wrapper
-// ---------------------------------------------------------------------------
-function Section({
-  id,
-  children,
-  className,
-}: {
-  id?: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <section id={id} className={cn("py-24 px-6", className)}>
-      <div className="mx-auto max-w-6xl">{children}</div>
-    </section>
-  );
-}
-
-function SectionTitle({
-  children,
-  sub,
-}: {
-  children: React.ReactNode;
-  sub?: React.ReactNode;
-}) {
-  return (
-    <motion.div
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.3 }}
-      className="mb-14 text-center"
-    >
-      <h2 className="text-3xl font-bold tracking-tight text-zinc-100 sm:text-4xl">
-        {children}
-      </h2>
-      {sub && <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">{sub}</p>}
-    </motion.div>
   );
 }
 
@@ -142,38 +67,28 @@ function SectionTitle({
 // Navbar
 // ---------------------------------------------------------------------------
 export function Navbar() {
-  const links = [
-    { label: "Features", href: "#features" },
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Sources", href: "#sources" },
-    { label: "FAQ", href: "#faq" },
-  ];
-
   return (
-    <nav className="sticky top-0 z-50 border-b border-zinc-800/60 bg-[#09090b]/80 backdrop-blur-lg">
+    <nav className="sticky top-0 z-50 border-b border-zinc-800/50 bg-[#09090b]/90 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-        <Link href="/" className="flex items-center gap-2 text-zinc-100 font-semibold text-lg">
-          <Zap className="h-5 w-5 text-indigo-500" />
+        <Link href="/" className="flex items-center gap-2 text-zinc-100 font-semibold">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-600">
+            <Zap className="h-3.5 w-3.5 text-white" />
+          </div>
           PromptTrace
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
-            >
-              {l.label}
-            </a>
-          ))}
+        <div className="hidden md:flex items-center gap-6">
+          <a href="#features" className="text-sm text-zinc-500 hover:text-zinc-200 transition-colors">Features</a>
+          <a href="#how-it-works" className="text-sm text-zinc-500 hover:text-zinc-200 transition-colors">How It Works</a>
+          <a href="#sources" className="text-sm text-zinc-500 hover:text-zinc-200 transition-colors">Sources</a>
+          <a href="#faq" className="text-sm text-zinc-500 hover:text-zinc-200 transition-colors">FAQ</a>
         </div>
 
         <Link
           href="/dashboard"
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
+          className="rounded-lg bg-zinc-100 px-4 py-1.5 text-sm font-medium text-zinc-900 hover:bg-white transition-colors"
         >
-          View Dashboard
+          Open Dashboard
         </Link>
       </div>
     </nav>
@@ -185,473 +100,382 @@ export function Navbar() {
 // ---------------------------------------------------------------------------
 export function Hero() {
   return (
-    <Section className="relative overflow-hidden pt-32 pb-28">
-      {/* Gradient decoration */}
+    <section className="relative overflow-hidden px-6 pt-24 pb-0">
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[900px] rounded-full bg-indigo-600/10 blur-[120px]" />
-        <div className="absolute right-0 top-1/4 h-[300px] w-[300px] rounded-full bg-violet-600/8 blur-[100px]" />
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/3 h-[600px] w-[800px] rounded-full bg-indigo-600/8 blur-[140px]" />
       </div>
 
       <motion.div
         variants={stagger}
         initial="hidden"
         animate="visible"
-        className="flex flex-col items-center text-center"
+        className="mx-auto max-w-5xl text-center"
       >
-        <motion.div variants={fadeUp} className="mb-4">
-          <span className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/80 px-4 py-1.5 text-xs font-medium text-zinc-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
-            Open source and local-first
+        <motion.div variants={fadeUp} className="mb-5">
+          <span className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/80 px-3 py-1 text-xs text-zinc-500">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            Open source &middot; Local-first &middot; No signup
           </span>
         </motion.div>
 
         <motion.h1
           variants={fadeUp}
-          className="text-5xl font-bold tracking-tight text-zinc-100 sm:text-6xl lg:text-7xl max-w-4xl"
+          className="text-4xl font-bold tracking-tight text-zinc-100 sm:text-5xl lg:text-6xl"
         >
-          Understand how you{" "}
-          <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-            prompt AI
-          </span>
+          See how you actually use{" "}
+          <span className="text-indigo-400">AI coding tools</span>
         </motion.h1>
 
-        <motion.p
-          variants={fadeUp}
-          className="mt-6 max-w-2xl text-lg text-zinc-400 leading-relaxed"
-        >
-          Local-first prompt intelligence for developers. Scan your AI coding history,
-          discover patterns, and extract reusable templates.
+        <motion.p variants={fadeUp} className="mx-auto mt-5 max-w-2xl text-base text-zinc-500 leading-relaxed sm:text-lg">
+          PromptTrace scans your local AI assistant histories, classifies every prompt, and gives you a dashboard to understand your workflow. All data stays on your machine.
         </motion.p>
 
-        <motion.div variants={fadeUp} className="mt-10 flex flex-col sm:flex-row items-center gap-4">
+        <motion.div variants={fadeUp} className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <div className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2.5 font-mono text-sm">
+            <span className="text-zinc-600 select-none">$</span>
+            <span className="text-zinc-300">npx prompttrace</span>
+            <CopyButton text="npx prompttrace" />
+          </div>
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
           >
-            View Dashboard Demo
-            <ArrowRight className="h-4 w-4" />
+            Live Demo
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
-          <a
-            href="#get-started"
-            className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900/60 px-6 py-3 text-sm font-medium text-zinc-300 hover:border-zinc-600 hover:text-zinc-100 transition-colors"
-          >
-            Get Started
-          </a>
         </motion.div>
 
-        <motion.div variants={fadeUp} className="mt-10">
-          <TerminalSnippet command="npx prompttrace init" />
+        {/* Dashboard Screenshot */}
+        <motion.div
+          variants={fadeUp}
+          className="relative mx-auto mt-16 max-w-5xl"
+        >
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-1 shadow-2xl shadow-black/50">
+            <div className="flex items-center gap-1.5 px-3 py-2">
+              <div className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+              <div className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+              <div className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+              <span className="ml-3 text-[10px] text-zinc-600">localhost:3001/dashboard</span>
+            </div>
+            <Image
+              src="/dashboard-preview.png"
+              alt="PromptTrace Dashboard"
+              width={1920}
+              height={1080}
+              className="rounded-lg"
+              priority
+            />
+          </div>
+          {/* Fade to black at bottom */}
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#09090b] to-transparent" />
         </motion.div>
       </motion.div>
-    </Section>
+    </section>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Trust Strip
+// Stats Strip
 // ---------------------------------------------------------------------------
-const trustBadges = [
-  { label: "Open Source", icon: Code },
-  { label: "Local-First", icon: HardDrive },
-  { label: "SQLite-Powered", icon: Database },
-  { label: "No Signup Required", icon: ShieldCheck },
-  { label: "Privacy Friendly", icon: Lock },
-  { label: "Adapter-Based", icon: Plug },
-];
-
 export function TrustStrip() {
+  const stats = [
+    { value: "16+", label: "AI tools detected", icon: Plug },
+    { value: "100%", label: "Local & private", icon: Lock },
+    { value: "14", label: "Prompt categories", icon: Tags },
+    { value: "<1min", label: "Setup time", icon: Clock },
+  ];
+
   return (
-    <Section className="py-12 border-y border-zinc-800/60">
+    <section className="border-y border-zinc-800/50 px-6 py-10">
       <motion.div
         variants={stagger}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-        className="flex flex-wrap justify-center gap-4"
+        viewport={{ once: true }}
+        className="mx-auto grid max-w-4xl grid-cols-2 gap-6 sm:grid-cols-4"
       >
-        {trustBadges.map((b) => (
-          <motion.span
-            key={b.label}
-            variants={fadeIn}
-            className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-sm text-zinc-400"
-          >
-            <b.icon className="h-4 w-4 text-zinc-500" />
-            {b.label}
-          </motion.span>
+        {stats.map((s) => (
+          <motion.div key={s.label} variants={fadeIn} className="text-center">
+            <s.icon className="mx-auto h-4 w-4 text-zinc-600 mb-2" />
+            <div className="text-2xl font-bold text-zinc-100">{s.value}</div>
+            <div className="mt-1 text-xs text-zinc-500">{s.label}</div>
+          </motion.div>
         ))}
       </motion.div>
-    </Section>
+    </section>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Problem Section
+// Terminal Preview
 // ---------------------------------------------------------------------------
-const problems = [
-  {
-    icon: AlertTriangle,
-    title: "Prompts get lost",
-    description:
-      "Your best AI interactions disappear into tool-specific history files that you never revisit.",
-  },
-  {
-    icon: Repeat,
-    title: "Patterns go unnoticed",
-    description:
-      "You repeat similar prompts without realizing you could templatize them for consistency and speed.",
-  },
-  {
-    icon: Layers,
-    title: "No cross-tool view",
-    description:
-      "Each AI tool keeps its own history format with no way to see the full picture in one place.",
-  },
-  {
-    icon: BookOpen,
-    title: "No learning loop",
-    description:
-      "Without analysis, you can\u2019t systematically improve your prompting or measure what works.",
-  },
-];
-
 export function ProblemSection() {
   return (
-    <Section>
-      <SectionTitle>Your AI prompt history is scattered and invisible</SectionTitle>
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        className="grid gap-6 sm:grid-cols-2"
-      >
-        {problems.map((p) => (
-          <motion.div
-            key={p.title}
-            variants={fadeUp}
-            className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6"
-          >
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10">
-              <p.icon className="h-5 w-5 text-red-400" />
+    <section className="px-6 py-24">
+      <div className="mx-auto max-w-6xl">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="mb-14 text-center"
+        >
+          <h2 className="text-3xl font-bold tracking-tight text-zinc-100 sm:text-4xl">
+            One command. Full visibility.
+          </h2>
+          <p className="mt-4 text-zinc-500 max-w-xl mx-auto">
+            Run <code className="text-zinc-300 bg-zinc-800 rounded px-1.5 py-0.5 text-sm">npx prompttrace</code> and instantly see how you use AI across all your projects.
+          </p>
+        </motion.div>
+
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="mx-auto max-w-3xl"
+        >
+          {/* Terminal window */}
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-2xl">
+            <div className="flex items-center gap-1.5 border-b border-zinc-800/80 px-4 py-3">
+              <div className="h-2.5 w-2.5 rounded-full bg-red-500/60" />
+              <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/60" />
+              <div className="h-2.5 w-2.5 rounded-full bg-green-500/60" />
+              <span className="ml-3 text-[11px] text-zinc-600 font-mono">Terminal</span>
             </div>
-            <h3 className="text-lg font-semibold text-zinc-100">{p.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-400">{p.description}</p>
-          </motion.div>
-        ))}
-      </motion.div>
-    </Section>
+            <div className="px-5 py-4 font-mono text-sm leading-7">
+              <div><span className="text-zinc-600">$</span> <span className="text-zinc-300">npx prompttrace</span></div>
+              <div className="text-zinc-600 mt-3">  PromptTrace v0.2.3</div>
+              <div className="text-zinc-600">  Local-first prompt intelligence for developers</div>
+              <div className="mt-3">
+                <span className="text-emerald-500">  Scanning Claude Code...</span>
+                <span className="text-zinc-400"> 114 prompts from 7 projects</span>
+              </div>
+              <div>
+                <span className="text-emerald-500">  Scanning Cursor...</span>
+                <span className="text-zinc-400"> 25 prompts from 3 projects</span>
+              </div>
+              <div className="mt-2 text-zinc-300">  Total: 139 prompts ingested</div>
+              <div className="mt-3 text-indigo-400">  Dashboard ready at http://localhost:3001/dashboard</div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Solution Section
+// What You Get
 // ---------------------------------------------------------------------------
-const solutionPoints = [
-  "Scan local AI tool histories automatically",
-  "Normalize prompts across different tools and formats",
-  "Classify prompts by category and intent",
-  "Surface reusable prompt templates",
-  "Explore sessions and projects visually",
-];
-
 export function SolutionSection() {
+  const items = [
+    { icon: Activity, title: "Activity overview", desc: "Daily prompt volume, category trends, model usage at a glance" },
+    { icon: Eye, title: "Prompt explorer", desc: "Search, filter, and browse every prompt across all your AI tools" },
+    { icon: Sparkles, title: "Template extraction", desc: "Automatically detects reusable prompt patterns from your history" },
+    { icon: Clock, title: "Session timelines", desc: "See each coding session as a chronological prompt timeline" },
+    { icon: BarChart3, title: "Project analytics", desc: "Per-project breakdown of AI usage, categories, and files touched" },
+    { icon: Tags, title: "Smart classification", desc: "14 categories and 8 intents assigned automatically to every prompt" },
+  ];
+
   return (
-    <Section>
-      <SectionTitle>
-        PromptTrace turns scattered history into structured insight
-      </SectionTitle>
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-        className="mx-auto max-w-2xl"
-      >
-        <ul className="space-y-4">
-          {solutionPoints.map((point) => (
-            <motion.li
-              key={point}
+    <section id="features" className="px-6 py-24 border-t border-zinc-800/50">
+      <div className="mx-auto max-w-6xl">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="mb-14 text-center"
+        >
+          <h2 className="text-3xl font-bold tracking-tight text-zinc-100 sm:text-4xl">
+            What you get
+          </h2>
+          <p className="mt-4 text-zinc-500">Everything runs locally. Nothing leaves your machine.</p>
+        </motion.div>
+
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {items.map((item) => (
+            <motion.div
+              key={item.title}
               variants={fadeUp}
-              className="flex items-start gap-3 text-zinc-300"
+              className="group rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-5 hover:border-zinc-700/80 hover:bg-zinc-900/60 transition-all"
             >
-              <Check className="mt-0.5 h-5 w-5 shrink-0 text-indigo-500" />
-              <span>{point}</span>
-            </motion.li>
+              <item.icon className="h-5 w-5 text-zinc-600 mb-3 group-hover:text-indigo-400 transition-colors" />
+              <h3 className="text-sm font-semibold text-zinc-200">{item.title}</h3>
+              <p className="mt-1.5 text-sm text-zinc-500 leading-relaxed">{item.desc}</p>
+            </motion.div>
           ))}
-        </ul>
-      </motion.div>
-    </Section>
+        </motion.div>
+      </div>
+    </section>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Feature Grid
+// Feature Grid (kept for compatibility)
 // ---------------------------------------------------------------------------
-const features = [
-  {
-    icon: ScanSearch,
-    title: "Multi-Source Scanning",
-    description: "Connect Cursor, Claude Code, Copilot, and more through a unified adapter system.",
-  },
-  {
-    icon: Tags,
-    title: "Prompt Classification",
-    description:
-      "Automatic categorization by intent and topic so you can filter and analyze by type.",
-  },
-  {
-    icon: FileText,
-    title: "Template Extraction",
-    description:
-      "Find and save your most reusable prompt patterns as templates for future use.",
-  },
-  {
-    icon: Clock,
-    title: "Session Explorer",
-    description: "Browse your AI sessions as timelines to understand how conversations evolve.",
-  },
-  {
-    icon: BarChart3,
-    title: "Project Insights",
-    description:
-      "See AI usage patterns across your projects, from prompt frequency to category distribution.",
-  },
-  {
-    icon: Search,
-    title: "Search Everything",
-    description: "Full-text search across all your prompt history, with filters and instant results.",
-  },
-];
-
 export function FeatureGrid() {
-  return (
-    <Section id="features">
-      <SectionTitle sub="Everything you need to analyze, organize, and improve your AI prompting workflow.">
-        Built for developers who use AI daily
-      </SectionTitle>
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.15 }}
-        className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-      >
-        {features.map((f) => (
-          <motion.div
-            key={f.title}
-            variants={fadeUp}
-            className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 hover:border-zinc-700 transition-colors"
-          >
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600/10">
-              <f.icon className="h-5 w-5 text-indigo-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-zinc-100">{f.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-400">{f.description}</p>
-          </motion.div>
-        ))}
-      </motion.div>
-    </Section>
-  );
+  return null;
 }
 
 // ---------------------------------------------------------------------------
 // How It Works
 // ---------------------------------------------------------------------------
-const steps = [
-  {
-    step: "01",
-    title: "Connect your sources",
-    description:
-      "Point PromptTrace at your local AI tool directories. It auto-detects Cursor, Claude Code, Copilot, and more.",
-    icon: FolderSearch,
-  },
-  {
-    step: "02",
-    title: "Scan and analyze",
-    description:
-      "Prompts are parsed, normalized, and classified automatically using adapter-based extraction and rule-based heuristics.",
-    icon: Cpu,
-  },
-  {
-    step: "03",
-    title: "Browse insights",
-    description:
-      "Explore dashboards, templates, sessions, and search your entire prompt history from a single interface.",
-    icon: BarChart3,
-  },
-];
-
 export function HowItWorks() {
+  const steps = [
+    { num: "1", icon: Terminal, title: "Run the command", desc: "npx prompttrace auto-detects installed AI tools on your machine" },
+    { num: "2", icon: ScanSearch, title: "Sources are scanned", desc: "Reads local history files from Claude Code, Cursor, and others" },
+    { num: "3", icon: Cpu, title: "Prompts are analyzed", desc: "Each prompt is classified, scored, and grouped into templates" },
+    { num: "4", icon: BarChart3, title: "Dashboard opens", desc: "Browse your insights, search history, explore sessions" },
+  ];
+
   return (
-    <Section id="how-it-works" className="border-t border-zinc-800/60">
-      <SectionTitle>How it works</SectionTitle>
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        className="grid gap-8 sm:grid-cols-3"
-      >
-        {steps.map((s) => (
-          <motion.div key={s.step} variants={fadeUp} className="text-center">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900">
-              <s.icon className="h-6 w-6 text-indigo-400" />
-            </div>
-            <span className="text-xs font-mono text-indigo-500 tracking-widest">{s.step}</span>
-            <h3 className="mt-2 text-lg font-semibold text-zinc-100">{s.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-400">{s.description}</p>
-          </motion.div>
-        ))}
-      </motion.div>
-    </Section>
+    <section id="how-it-works" className="px-6 py-24 border-t border-zinc-800/50">
+      <div className="mx-auto max-w-5xl">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="mb-14 text-center"
+        >
+          <h2 className="text-3xl font-bold tracking-tight text-zinc-100 sm:text-4xl">
+            How it works
+          </h2>
+        </motion.div>
+
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4"
+        >
+          {steps.map((s) => (
+            <motion.div key={s.num} variants={fadeUp} className="relative text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900">
+                <s.icon className="h-5 w-5 text-indigo-400" />
+              </div>
+              <span className="text-[10px] font-mono text-indigo-500/60 tracking-widest uppercase">Step {s.num}</span>
+              <h3 className="mt-1 text-sm font-semibold text-zinc-200">{s.title}</h3>
+              <p className="mt-1.5 text-xs text-zinc-500 leading-relaxed">{s.desc}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
   );
 }
 
 // ---------------------------------------------------------------------------
 // Supported Sources
 // ---------------------------------------------------------------------------
-const sources = [
-  { name: "Cursor", icon: MessageSquare },
-  { name: "Claude Code", icon: Terminal },
-  { name: "GitHub Copilot", icon: GitBranch },
-  { name: "Gemini CLI", icon: Workflow },
-  { name: "Codex CLI", icon: Cpu },
-  { name: "JSON Import", icon: FileJson },
-  { name: "Markdown Import", icon: FileCode },
-];
-
 export function SupportedSources() {
+  const sources = [
+    { name: "Claude Code", icon: Terminal },
+    { name: "Cursor", icon: MessageSquare },
+    { name: "GitHub Copilot", icon: GitBranch },
+    { name: "Gemini CLI", icon: Workflow },
+    { name: "Codex CLI", icon: Cpu },
+    { name: "JSON Import", icon: FileJson },
+    { name: "Markdown", icon: FileCode },
+  ];
+
   return (
-    <Section id="sources">
-      <SectionTitle sub="PromptTrace reads directly from local history files. No API keys, no cloud sync.">
-        Supported sources
-      </SectionTitle>
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-        className="flex flex-wrap justify-center gap-4"
-      >
-        {sources.map((s) => (
-          <motion.div
-            key={s.name}
-            variants={fadeUp}
-            className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 px-5 py-3 hover:border-zinc-700 transition-colors"
-          >
-            <s.icon className="h-5 w-5 text-zinc-400" />
-            <span className="text-sm font-medium text-zinc-200">{s.name}</span>
-          </motion.div>
-        ))}
-      </motion.div>
-    </Section>
+    <section id="sources" className="px-6 py-24 border-t border-zinc-800/50">
+      <div className="mx-auto max-w-5xl">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="mb-10 text-center"
+        >
+          <h2 className="text-3xl font-bold tracking-tight text-zinc-100 sm:text-4xl">
+            Supported sources
+          </h2>
+          <p className="mt-4 text-zinc-500">Reads directly from local history files. Adapter-based architecture.</p>
+        </motion.div>
+
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="flex flex-wrap justify-center gap-3"
+        >
+          {sources.map((s) => (
+            <motion.div
+              key={s.name}
+              variants={fadeIn}
+              className="flex items-center gap-2.5 rounded-lg border border-zinc-800 bg-zinc-900/40 px-4 py-2.5 text-sm text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 transition-all"
+            >
+              <s.icon className="h-4 w-4" />
+              {s.name}
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
   );
 }
 
 // ---------------------------------------------------------------------------
 // Privacy Section
 // ---------------------------------------------------------------------------
-const privacyPoints = [
-  "PromptTrace runs entirely locally",
-  "All data stored in a local SQLite database",
-  "No cloud sync, no telemetry, no tracking",
-  "Open source \u2014 inspect every line of code",
-];
-
 export function PrivacySection() {
   return (
-    <Section className="border-t border-zinc-800/60">
-      <div className="mx-auto max-w-3xl text-center">
+    <section className="px-6 py-24 border-t border-zinc-800/50">
+      <div className="mx-auto max-w-2xl text-center">
         <motion.div
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true }}
         >
-          <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900">
-            <ShieldCheck className="h-7 w-7 text-indigo-400" />
-          </div>
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-100 sm:text-4xl">
-            Your data never leaves your machine
+          <ShieldCheck className="mx-auto h-8 w-8 text-zinc-700 mb-5" />
+          <h2 className="text-3xl font-bold tracking-tight text-zinc-100">
+            100% local. Zero telemetry.
           </h2>
+          <p className="mt-4 text-zinc-500 leading-relaxed">
+            Your prompt data never leaves your machine. PromptTrace stores everything in a local SQLite
+            database at <code className="text-zinc-400 bg-zinc-800 rounded px-1 py-0.5 text-xs">~/.prompttrace/data/</code>.
+            No cloud, no accounts, no API keys. Open source under MIT.
+          </p>
         </motion.div>
-
-        <motion.ul
-          variants={stagger}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          className="mt-10 space-y-4"
-        >
-          {privacyPoints.map((point) => (
-            <motion.li
-              key={point}
-              variants={fadeUp}
-              className="flex items-center justify-center gap-3 text-zinc-300"
-            >
-              <Lock className="h-4 w-4 shrink-0 text-zinc-500" />
-              <span>{point}</span>
-            </motion.li>
-          ))}
-        </motion.ul>
       </div>
-    </Section>
+    </section>
   );
 }
 
 // ---------------------------------------------------------------------------
-// FAQ Section
+// FAQ
 // ---------------------------------------------------------------------------
 const faqs = [
-  {
-    q: "Does my data leave my machine?",
-    a: "No. PromptTrace is fully local. Your prompt history stays on your machine in a SQLite database. There is no cloud component, no telemetry, and no external API calls.",
-  },
-  {
-    q: "Which AI tools are supported?",
-    a: "Currently supports Cursor, Claude Code, GitHub Copilot CLI, Gemini CLI, and Codex CLI. You can also import prompt history from JSON or Markdown files. The adapter architecture makes it easy to add new sources.",
-  },
-  {
-    q: "Do I need an API key?",
-    a: "No. PromptTrace does not call any AI APIs. Classification and analysis are done locally using rule-based heuristics.",
-  },
-  {
-    q: "Can I import my own prompt history?",
-    a: "Yes. You can import JSON files following the PromptTrace schema, or Markdown conversation files. See the documentation for the expected format.",
-  },
-  {
-    q: "Is this open source?",
-    a: "Yes. PromptTrace is released under the MIT license. Contributions are welcome.",
-  },
-  {
-    q: "How does prompt classification work?",
-    a: "PromptTrace uses rule-based heuristics to classify prompts into categories like bug-fixing, refactoring, testing, and more. The architecture supports future ML-based classification.",
-  },
+  { q: "Does my data leave my machine?", a: "No. Everything runs locally. PromptTrace stores data in a SQLite database on your disk. There are no network requests, no telemetry, no cloud sync." },
+  { q: "Which AI tools are supported?", a: "Claude Code and Cursor have full adapter support. Copilot, Gemini CLI, and Codex CLI adapters are planned. You can also import from JSON or Markdown files." },
+  { q: "Do I need an API key?", a: "No. PromptTrace doesn't call any external APIs. Classification and scoring use local rule-based heuristics." },
+  { q: "How does classification work?", a: "Each prompt is matched against weighted keyword lists for 14 categories (bug-fixing, refactoring, testing, etc.) and 8 intents (ask, instruct, generate, fix, etc.). The architecture is designed to support ML-based classification later." },
+  { q: "Is this free?", a: "Yes. PromptTrace is open source under the MIT license." },
 ];
 
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-zinc-800">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between py-5 text-left"
-      >
-        <span className="text-sm font-medium text-zinc-200">{q}</span>
-        <ChevronDown
-          className={cn(
-            "h-4 w-4 shrink-0 text-zinc-500 transition-transform duration-200",
-            open && "rotate-180"
-          )}
-        />
+    <div className="border-b border-zinc-800/80">
+      <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between py-4 text-left">
+        <span className="text-sm text-zinc-300">{q}</span>
+        <ChevronDown className={cn("h-4 w-4 text-zinc-600 transition-transform", open && "rotate-180")} />
       </button>
-      <div
-        className={cn(
-          "overflow-hidden transition-all duration-200",
-          open ? "max-h-96 pb-5" : "max-h-0"
-        )}
-      >
-        <p className="text-sm leading-relaxed text-zinc-400">{a}</p>
+      <div className={cn("overflow-hidden transition-all", open ? "max-h-96 pb-4" : "max-h-0")}>
+        <p className="text-sm text-zinc-500 leading-relaxed">{a}</p>
       </div>
     </div>
   );
@@ -659,57 +483,43 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 
 export function FAQSection() {
   return (
-    <Section id="faq">
-      <SectionTitle>Frequently asked questions</SectionTitle>
+    <section id="faq" className="px-6 py-24 border-t border-zinc-800/50">
       <div className="mx-auto max-w-2xl">
-        {faqs.map((f) => (
-          <FAQItem key={f.q} {...f} />
-        ))}
+        <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-10 text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-zinc-100">FAQ</h2>
+        </motion.div>
+        {faqs.map((f) => <FAQItem key={f.q} {...f} />)}
       </div>
-    </Section>
+    </section>
   );
 }
 
 // ---------------------------------------------------------------------------
-// CTA Section
+// CTA
 // ---------------------------------------------------------------------------
 export function CTASection() {
   return (
-    <Section id="get-started" className="border-t border-zinc-800/60">
+    <section className="px-6 py-24 border-t border-zinc-800/50">
       <motion.div
         variants={fadeUp}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-        className="relative mx-auto max-w-3xl text-center"
+        viewport={{ once: true }}
+        className="mx-auto max-w-2xl text-center"
       >
-        {/* Subtle glow */}
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[300px] w-[500px] rounded-full bg-indigo-600/8 blur-[100px]" />
-        </div>
-
-        <h2 className="text-3xl font-bold tracking-tight text-zinc-100 sm:text-4xl">
-          Start understanding your AI workflow
+        <h2 className="text-3xl font-bold tracking-tight text-zinc-100">
+          Try it now
         </h2>
-        <p className="mt-4 text-lg text-zinc-400">
-          PromptTrace is free, open source, and takes under a minute to set up.
-        </p>
-
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
-          >
-            View Dashboard Demo
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        <div className="mt-8 flex justify-center">
-          <TerminalSnippet command="npx prompttrace init" />
+        <p className="mt-3 text-zinc-500">Takes less than a minute. No signup required.</p>
+        <div className="mt-8 flex items-center justify-center gap-3">
+          <div className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2.5 font-mono text-sm">
+            <span className="text-zinc-600 select-none">$</span>
+            <span className="text-zinc-300">npx prompttrace</span>
+            <CopyButton text="npx prompttrace" />
+          </div>
         </div>
       </motion.div>
-    </Section>
+    </section>
   );
 }
 
@@ -718,38 +528,16 @@ export function CTASection() {
 // ---------------------------------------------------------------------------
 export function Footer() {
   return (
-    <footer className="border-t border-zinc-800/60 py-12 px-6">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 text-center sm:flex-row sm:justify-between sm:text-left">
-        <div>
-          <Link href="/" className="flex items-center gap-2 text-zinc-100 font-semibold">
-            <Zap className="h-4 w-4 text-indigo-500" />
-            PromptTrace
-          </Link>
-          <p className="mt-1 text-xs text-zinc-500">
-            Local-first prompt intelligence for developers.
-          </p>
+    <footer className="border-t border-zinc-800/50 px-6 py-8">
+      <div className="mx-auto flex max-w-6xl items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-zinc-600">
+          <Zap className="h-3.5 w-3.5" />
+          PromptTrace
         </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-zinc-500">
-          <a href="https://github.com/ahmetseha/prompt-trace" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors flex items-center gap-1">
-            <Code className="h-3.5 w-3.5" />
-            GitHub
-          </a>
-          <a href="https://github.com/ahmetseha/prompt-trace/tree/main/docs" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors">
-            Documentation
-          </a>
-          <a href="https://github.com/ahmetseha/prompt-trace/blob/main/docs/contributing.md" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-300 transition-colors">
-            Contributing
-          </a>
-        </div>
-
-        <div className="flex flex-col items-center gap-1 sm:items-end">
-          <span className="text-xs text-zinc-600">
-            Built with Next.js, TypeScript, and SQLite
-          </span>
-          <span className="inline-flex items-center rounded-full border border-zinc-800 px-2.5 py-0.5 text-[10px] font-medium text-zinc-500">
-            MIT License
-          </span>
+        <div className="flex items-center gap-5 text-xs text-zinc-600">
+          <a href="https://github.com/ahmetseha/prompt-trace" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400 transition-colors">GitHub</a>
+          <a href="https://github.com/ahmetseha/prompt-trace/tree/main/docs" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400 transition-colors">Docs</a>
+          <span>MIT License</span>
         </div>
       </div>
     </footer>
