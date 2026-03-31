@@ -1,5 +1,5 @@
-"use client";
-
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import {
   Navbar,
   Hero,
@@ -15,7 +15,12 @@ import {
   Footer,
 } from "@/features/landing/components";
 
-export default function LandingPage() {
+export default async function RootPage() {
+  // When running via CLI (PROMPTTRACE_CLI=1), root shows the dashboard
+  if (process.env.PROMPTTRACE_CLI === "1") {
+    redirect("/dashboard");
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />

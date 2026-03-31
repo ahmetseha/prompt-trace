@@ -22,7 +22,6 @@ import {
   BarChart3,
   Search,
   ChevronDown,
-  ArrowRight,
   Copy,
   Check,
   MessageSquare,
@@ -84,12 +83,14 @@ export function Navbar() {
           <a href="#faq" className="text-sm text-zinc-500 hover:text-zinc-200 transition-colors">FAQ</a>
         </div>
 
-        <Link
-          href="/dashboard"
+        <a
+          href="https://github.com/ahmetseha/prompt-trace"
+          target="_blank"
+          rel="noopener noreferrer"
           className="rounded-lg bg-zinc-100 px-4 py-1.5 text-sm font-medium text-zinc-900 hover:bg-white transition-colors"
         >
-          Open Dashboard
-        </Link>
+          GitHub
+        </a>
       </div>
     </nav>
   );
@@ -136,13 +137,15 @@ export function Hero() {
             <span className="text-zinc-300">npx prompttrace</span>
             <CopyButton text="npx prompttrace" />
           </div>
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
+          <a
+            href="https://github.com/ahmetseha/prompt-trace"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900/60 px-5 py-2.5 text-sm font-medium text-zinc-300 hover:border-zinc-600 transition-colors"
           >
-            Live Demo
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+            <Code className="h-3.5 w-3.5" />
+            View on GitHub
+          </a>
         </motion.div>
 
         {/* Dashboard Screenshot */}

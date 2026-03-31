@@ -52,7 +52,7 @@ const noCache = args.includes("--no-cache");
 const scanOnly = args[0] === "scan";
 
 console.log("");
-console.log("  PromptTrace v0.2.4");
+console.log("  PromptTrace v0.2.5");
 console.log("  Local-first prompt intelligence for developers");
 console.log("");
 
@@ -144,6 +144,7 @@ let serverEnv = {
   PORT: port,
   HOSTNAME: "0.0.0.0",
   NODE_ENV: "production",
+  PROMPTTRACE_CLI: "1",
 };
 
 if (useStandalone) {
@@ -195,7 +196,7 @@ server.stdout?.on("data", () => {});
     await runIngest(port);
   }
 
-  console.log(`  Dashboard ready at http://localhost:${port}/dashboard`);
+  console.log(`  Dashboard ready at http://localhost:${port}`);
   console.log("");
   console.log("  Press Ctrl+C to stop");
   console.log("");
@@ -206,7 +207,7 @@ server.stdout?.on("data", () => {});
         : process.platform === "win32" ? "start"
         : "xdg-open";
     try {
-      execSync(`${cmd} http://localhost:${port}/dashboard`, { stdio: "ignore" });
+      execSync(`${cmd} http://localhost:${port}`, { stdio: "ignore" });
     } catch { /* ignore */ }
   }
 })();
