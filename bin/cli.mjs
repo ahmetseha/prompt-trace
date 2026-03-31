@@ -4,6 +4,7 @@ import { execSync, spawn } from "child_process";
 import { existsSync, mkdirSync, cpSync, readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { createServer } from "net";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = join(__dirname, "..");
@@ -23,22 +24,33 @@ if (args.includes("--help") || args.includes("-h")) {
     npx prompttrace --help       Show this help
 
   Options:
-    --port <number>   Port to run on (default: 3001)
+    --port <number>   Port to run on (default: auto-detect free port)
     --no-open         Don't open browser automatically
     --no-scan         Skip automatic source scanning
 `);
   process.exit(0);
 }
 
-const port = args.includes("--port")
-  ? args[args.indexOf("--port") + 1]
-  : "3001";
+function findFreePort(startPort) {
+  return new Promise((resolve) => {
+    const srv = createServer();
+    srv.listen(startPort, () => {
+      srv.close(() => resolve(startPort));
+    });
+    srv.on("error", () => resolve(findFreePort(startPort + 1)));
+  });
+}
+
+const requestedPort = args.includes("--port")
+  ? parseInt(args[args.indexOf("--port") + 1], 10)
+  : 3001;
+const port = String(await findFreePort(requestedPort));
 const noOpen = args.includes("--no-open");
 const noScan = args.includes("--no-scan");
 const scanOnly = args[0] === "scan";
 
 console.log("");
-console.log("  PromptTrace v0.1.1");
+console.log("  PromptTrace v0.1.2");
 console.log("  Local-first prompt intelligence for developers");
 console.log("");
 
