@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
 import { execSync, spawn } from "child_process";
-import { existsSync, mkdirSync, writeFileSync, readFileSync } from "fs";
+import { existsSync, mkdirSync, cpSync, readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { createRequire } from "module";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = join(__dirname, "..");
+const HOME = process.env.HOME || process.env.USERPROFILE || "~";
+const APP_DIR = join(HOME, ".prompttrace");
 
 const args = process.argv.slice(2);
 
@@ -37,74 +38,125 @@ const noScan = args.includes("--no-scan");
 const scanOnly = args[0] === "scan";
 
 console.log("");
-console.log("  PromptTrace v0.1.0");
+console.log("  PromptTrace v0.1.1");
 console.log("  Local-first prompt intelligence for developers");
 console.log("");
 
-// Ensure dependencies are installed
-const nodeModules = join(pkgRoot, "node_modules");
-if (!existsSync(nodeModules)) {
+// --- Setup app in ~/.prompttrace ---
+const pkgJson = JSON.parse(readFileSync(join(pkgRoot, "package.json"), "utf-8"));
+const versionFile = join(APP_DIR, ".version");
+const currentVersion = pkgJson.version;
+const installedVersion = existsSync(versionFile)
+  ? readFileSync(versionFile, "utf-8").trim()
+  : null;
+
+const needsInstall = !existsSync(APP_DIR) || installedVersion !== currentVersion;
+
+if (needsInstall) {
+  console.log(
+    installedVersion
+      ? `  Updating ${installedVersion} -> ${currentVersion}...`
+      : "  Setting up PromptTrace..."
+  );
+
+  // Copy source files to ~/.prompttrace
+  mkdirSync(APP_DIR, { recursive: true });
+
+  const copyDirs = ["src", "scripts", "bin", "docs"];
+  const copyFiles = [
+    "package.json",
+    "tsconfig.json",
+    "next.config.ts",
+    "postcss.config.mjs",
+    "next-env.d.ts",
+    "drizzle.config.ts",
+  ];
+
+  for (const dir of copyDirs) {
+    const src = join(pkgRoot, dir);
+    if (existsSync(src)) {
+      cpSync(src, join(APP_DIR, dir), { recursive: true, force: true });
+    }
+  }
+
+  for (const file of copyFiles) {
+    const src = join(pkgRoot, file);
+    if (existsSync(src)) {
+      cpSync(src, join(APP_DIR, file), { force: true });
+    }
+  }
+
+  // Ensure public dir exists (Next.js expects it)
+  mkdirSync(join(APP_DIR, "public"), { recursive: true });
+
+  // Remove package-lock.json to avoid lockfile conflicts
+  const lockFile = join(APP_DIR, "package-lock.json");
+  if (existsSync(lockFile)) {
+    const { unlinkSync } = await import("fs");
+    unlinkSync(lockFile);
+  }
+
   console.log("  Installing dependencies...");
-  execSync("npm install --production --no-audit --no-fund", {
-    cwd: pkgRoot,
+  execSync("npm install --omit=dev --no-audit --no-fund", {
+    cwd: APP_DIR,
     stdio: ["ignore", "ignore", "inherit"],
   });
-  console.log("  Dependencies installed.");
+
+  // Write version marker
+  writeFileSync(versionFile, currentVersion);
+  console.log("  Setup complete.");
   console.log("");
 }
 
-// Ensure data directory exists
-const dataDir = join(pkgRoot, "data");
-if (!existsSync(dataDir)) {
-  mkdirSync(dataDir, { recursive: true });
-}
+// Ensure data directory
+const dataDir = join(APP_DIR, "data");
+mkdirSync(dataDir, { recursive: true });
 
 const dbPath = join(dataDir, "prompttrace.db");
 const isFirstRun = !existsSync(dbPath);
 
-// Build if .next doesn't exist
-const nextDir = join(pkgRoot, ".next");
-if (!existsSync(nextDir)) {
-  console.log("  Building dashboard (first time only)...");
-  execSync("npx next build", { cwd: pkgRoot, stdio: ["ignore", "ignore", "inherit"] });
+// Build if needed
+const nextDir = join(APP_DIR, ".next");
+if (!existsSync(nextDir) || needsInstall) {
+  console.log("  Building dashboard...");
+  execSync(
+    `${process.execPath} ${join(APP_DIR, "node_modules", ".bin", "next")} build`,
+    { cwd: APP_DIR, stdio: ["ignore", "ignore", "inherit"] }
+  );
   console.log("  Build complete.");
   console.log("");
 }
 
+// --- Scan only mode ---
 if (scanOnly) {
-  // Just scan and exit
   console.log("  Starting temporary server for scanning...");
-  const srv = spawn("npx", ["next", "start", "-p", port], {
-    cwd: pkgRoot,
-    stdio: "ignore",
-    shell: true,
-    detached: true,
-  });
-
-  // Wait for server to be ready
-  await waitForServer(port, 15000);
+  const srv = spawn(
+    process.execPath,
+    [join(APP_DIR, "node_modules", ".bin", "next"), "start", "-p", port],
+    { cwd: APP_DIR, stdio: "ignore", detached: true }
+  );
+  await waitForServer(port, 20000);
   await runIngest(port);
-
   srv.kill();
   console.log("  Done.");
   process.exit(0);
 }
 
-// Start the server
+// --- Start server ---
 console.log(`  Dashboard: http://localhost:${port}`);
 console.log("  Press Ctrl+C to stop");
 console.log("");
 
-const server = spawn("npx", ["next", "start", "-p", port], {
-  cwd: pkgRoot,
-  stdio: "inherit",
-  shell: true,
-});
+const server = spawn(
+  process.execPath,
+  [join(APP_DIR, "node_modules", ".bin", "next"), "start", "-p", port],
+  { cwd: APP_DIR, stdio: "inherit" }
+);
 
 // Auto-scan on first run
 if (isFirstRun && !noScan) {
   (async () => {
-    await waitForServer(port, 15000);
+    await waitForServer(port, 20000);
     await runIngest(port);
   })();
 }
@@ -136,7 +188,7 @@ process.on("SIGTERM", () => {
   process.exit(0);
 });
 
-// --- helpers ---
+// --- Helpers ---
 
 async function waitForServer(p, timeout) {
   const start = Date.now();
@@ -145,7 +197,7 @@ async function waitForServer(p, timeout) {
       const res = await fetch(`http://localhost:${p}/api/stats`);
       if (res.ok) return;
     } catch {
-      // not ready yet
+      // not ready
     }
     await new Promise((r) => setTimeout(r, 500));
   }
