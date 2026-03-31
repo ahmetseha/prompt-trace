@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   Navbar,
@@ -15,8 +14,9 @@ import {
   Footer,
 } from "@/features/landing/components";
 
+export const dynamic = "force-dynamic";
+
 export default async function RootPage() {
-  // When running via CLI (PROMPTTRACE_CLI=1), root shows the dashboard
   if (process.env.PROMPTTRACE_CLI === "1") {
     redirect("/dashboard");
   }
