@@ -13,7 +13,7 @@ export function AutoScan() {
   useEffect(() => {
     async function scan() {
       try {
-        for (const src of ["claude-code", "cursor"]) {
+        for (const src of ["claude-code", "cursor", "codex-cli"]) {
           await fetch("/api/ingest", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

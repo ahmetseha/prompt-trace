@@ -216,7 +216,7 @@ async function waitForServer(p, timeout) {
 }
 
 async function runIngest(p) {
-  const sources = ["claude-code", "cursor"];
+  const sources = ["claude-code", "cursor", "codex-cli"];
   let total = 0;
 
   for (const src of sources) {

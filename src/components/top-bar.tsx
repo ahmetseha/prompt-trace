@@ -1,6 +1,8 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { RefreshCw, Share2, Check, Loader2 } from "lucide-react";
 
 const pageTitles: Record<string, { title: string; description: string }> = {
   "/dashboard": {
@@ -35,6 +37,9 @@ const pageTitles: Record<string, { title: string; description: string }> = {
 
 export function TopBar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [refreshing, setRefreshing] = useState(false);
+  const [shared, setShared] = useState(false);
 
   const matchedKey = Object.keys(pageTitles)
     .sort((a, b) => b.length - a.length)
@@ -44,13 +49,79 @@ export function TopBar() {
     ? pageTitles[matchedKey]
     : { title: "PromptTrace", description: "" };
 
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      for (const src of ["claude-code", "cursor", "codex-cli"]) {
+        await fetch("/api/ingest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sourceType: src }),
+        });
+      }
+      router.refresh();
+    } catch { /* ignore */ }
+    setRefreshing(false);
+  }
+
+  async function handleShare() {
+    try {
+      const res = await fetch("/api/stats");
+      const stats = await res.json();
+      const text = [
+        `PromptTrace Dashboard`,
+        `${stats.totalPrompts} prompts | ${stats.totalSessions} sessions | ${stats.totalProjects} projects`,
+        `Top category: ${Object.entries(stats.promptsByCategory || {}).sort(([,a],[,b]) => (b as number) - (a as number))[0]?.[0] || "-"}`,
+        `https://github.com/ahmetseha/prompt-trace`,
+      ].join("\n");
+
+      if (navigator.share) {
+        await navigator.share({ title: "PromptTrace", text });
+      } else {
+        await navigator.clipboard.writeText(text);
+        setShared(true);
+        setTimeout(() => setShared(false), 2000);
+      }
+    } catch {
+      // Fallback: copy URL
+      await navigator.clipboard.writeText("https://github.com/ahmetseha/prompt-trace");
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    }
+  }
+
   return (
-    <header className="flex h-14 items-center border-b border-zinc-800 px-6">
+    <header className="flex h-14 items-center justify-between border-b border-zinc-800 px-6">
       <div>
         <h1 className="text-sm font-semibold">{page.title}</h1>
         {page.description && (
           <p className="text-xs text-zinc-500">{page.description}</p>
         )}
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-50"
+        >
+          {refreshing ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <RefreshCw className="h-3 w-3" />
+          )}
+          {refreshing ? "Scanning..." : "Refresh"}
+        </button>
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200"
+        >
+          {shared ? (
+            <Check className="h-3 w-3 text-emerald-400" />
+          ) : (
+            <Share2 className="h-3 w-3" />
+          )}
+          {shared ? "Copied" : "Share"}
+        </button>
       </div>
     </header>
   );

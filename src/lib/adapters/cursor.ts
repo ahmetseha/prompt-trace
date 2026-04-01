@@ -109,7 +109,7 @@ async function parseJsonlFile(
       timestamp: fileMtime,
       promptText,
       responsePreview,
-      model: "cursor-unknown",
+      model: "Cursor",
       rawMetadata: {
         sourceFile: filePath,
       },

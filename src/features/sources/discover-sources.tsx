@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { RefreshCw, Loader2, Check, Terminal, Code } from "lucide-react";
+import { RefreshCw, Loader2, Check, Terminal, Code, Cpu } from "lucide-react";
 
 interface DetectedSource {
   adapterId: string;
@@ -71,6 +71,7 @@ export function DiscoverSources({ hasExistingSources }: { hasExistingSources: bo
   const iconMap: Record<string, React.ElementType> = {
     "claude-code": Terminal,
     cursor: Code,
+    "codex-cli": Cpu,
   };
 
   const available = sources.filter((s) => s.available);

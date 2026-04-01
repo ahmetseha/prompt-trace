@@ -203,7 +203,7 @@ export default function SettingsPage() {
         </FieldRow>
 
         <FieldRow label="Supported Sources">
-          <span className="text-sm text-zinc-400">Claude Code, Cursor</span>
+          <span className="text-sm text-zinc-400">Claude Code, Cursor, Codex CLI</span>
         </FieldRow>
 
         <FieldRow label="License">
