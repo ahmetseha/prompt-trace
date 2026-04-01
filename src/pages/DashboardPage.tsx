@@ -1,3 +1,4 @@
+import { PageLoader } from "@/components/page-loader";
 import { useQuery } from '@tanstack/react-query';
 import { DashboardContent } from '@/features/dashboard/dashboard-content';
 import { api } from '@/lib/api';
@@ -20,7 +21,7 @@ export function DashboardPage() {
 
   const isLoading = statsLoading || promptsLoading || templatesLoading;
 
-  if (isLoading) return <div className="animate-pulse">Loading...</div>;
+  if (isLoading) return <PageLoader />;
 
   const categoryData = Object.entries(stats.promptsByCategory)
     .map(([category, count]: [string, any]) => ({ category, count }))

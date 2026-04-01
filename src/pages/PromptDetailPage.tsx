@@ -1,3 +1,4 @@
+import { PageLoader } from "@/components/page-loader";
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -47,7 +48,7 @@ export function PromptDetailPage() {
     queryFn: api.getProjects,
   });
 
-  if (isLoading) return <div className="animate-pulse">Loading...</div>;
+  if (isLoading) return <PageLoader />;
 
   if (!data?.prompt) {
     return (

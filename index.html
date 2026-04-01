@@ -5,9 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PromptTrace</title>
   <meta name="description" content="Local-first prompt intelligence for developers" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    /* Inline critical styles so initial load isn't a black flash */
+    :root { --bg: #09090b; --fg: #a1a1aa; }
+    body { background: var(--bg); margin: 0; }
+    #loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: var(--fg);
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      gap: 10px;
+    }
+    #loading svg { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
-<body class="min-h-screen bg-background text-foreground antialiased" >
-  <div id="root"></div>
+<body>
+  <div id="root">
+    <!-- Initial loading state shown until React mounts -->
+    <div id="loading">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.07-7.07-2.83 2.83M9.76 14.24l-2.83 2.83m12.14 0-2.83-2.83M9.76 9.76 6.93 6.93"/></svg>
+      Loading dashboard...
+    </div>
+  </div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

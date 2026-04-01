@@ -1,3 +1,4 @@
+import { PageLoader } from "@/components/page-loader";
 import { useQuery } from '@tanstack/react-query';
 import { ProjectStatsCard, type ProjectStatsData } from '@/features/projects/project-stats-card';
 import { api } from '@/lib/api';
@@ -69,7 +70,7 @@ export function ProjectsPage() {
 
   const isLoading = projectsLoading || promptsLoading || sessionsLoading;
 
-  if (isLoading) return <div className="animate-pulse">Loading...</div>;
+  if (isLoading) return <PageLoader />;
 
   const projects = computeProjectStats(allProjects, allPrompts, allSessions);
 

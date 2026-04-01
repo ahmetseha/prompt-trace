@@ -1,3 +1,4 @@
+import { PageLoader } from "@/components/page-loader";
 import { useQuery } from '@tanstack/react-query';
 import { TemplateCard } from '@/features/templates/template-card';
 import { api } from '@/lib/api';
@@ -8,7 +9,7 @@ export function TemplatesPage() {
     queryFn: api.getTemplates,
   });
 
-  if (isLoading) return <div className="animate-pulse">Loading...</div>;
+  if (isLoading) return <PageLoader />;
 
   const templates = [...allTemplates].sort(
     (a: any, b: any) => (b.reuseScore ?? 0) - (a.reuseScore ?? 0)

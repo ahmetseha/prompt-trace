@@ -1,3 +1,4 @@
+import { PageLoader } from "@/components/page-loader";
 import { useQuery } from '@tanstack/react-query';
 import { SessionCard } from '@/features/sessions/session-card';
 import { api } from '@/lib/api';
@@ -15,7 +16,7 @@ export function SessionsPage() {
 
   const isLoading = sessionsLoading || projectsLoading;
 
-  if (isLoading) return <div className="animate-pulse">Loading...</div>;
+  if (isLoading) return <PageLoader />;
 
   const sorted = [...sessions].sort(
     (a: any, b: any) => (b.startedAt ?? b.createdAt) - (a.startedAt ?? a.createdAt)

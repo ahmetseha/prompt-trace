@@ -1,3 +1,4 @@
+import { PageLoader } from "@/components/page-loader";
 import { useQuery } from '@tanstack/react-query';
 import { SourceCard } from '@/features/sources/source-card';
 import { DiscoverSources } from '@/features/sources/discover-sources';
@@ -17,7 +18,7 @@ export function SourcesPage() {
 
   const isLoading = sourcesLoading || promptsLoading;
 
-  if (isLoading) return <div className="animate-pulse">Loading...</div>;
+  if (isLoading) return <PageLoader />;
 
   const promptCountBySource = (prompts as any[]).reduce<Record<string, number>>(
     (acc, p) => {

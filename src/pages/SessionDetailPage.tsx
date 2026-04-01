@@ -1,3 +1,4 @@
+import { PageLoader } from "@/components/page-loader";
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { SourceIcon } from '@/components/source-icon';
@@ -43,7 +44,7 @@ export function SessionDetailPage() {
     queryFn: api.getProjects,
   });
 
-  if (sessionLoading) return <div className="animate-pulse">Loading...</div>;
+  if (sessionLoading) return <PageLoader />;
 
   if (!sessionData?.session) {
     return (

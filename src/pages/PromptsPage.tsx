@@ -1,3 +1,4 @@
+import { PageLoader } from "@/components/page-loader";
 import { useQuery } from '@tanstack/react-query';
 import { PromptsExplorer } from '@/features/prompts/prompts-explorer';
 import { api } from '@/lib/api';
@@ -20,7 +21,7 @@ export function PromptsPage() {
 
   const isLoading = promptsLoading || sourcesLoading || projectsLoading;
 
-  if (isLoading) return <div className="animate-pulse">Loading...</div>;
+  if (isLoading) return <PageLoader />;
 
   return (
     <div className="space-y-6">
