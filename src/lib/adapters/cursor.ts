@@ -4,13 +4,16 @@ import path from "path";
 import os from "os";
 import readline from "readline";
 
-const PROJECTS_DIR = path.join(os.homedir(), ".cursor", "projects");
+const CURSOR_PROJECTS_DIR = path.join(os.homedir(), ".cursor", "projects");
+const CURSOR_WORKSPACE_DIR = path.join(
+  os.homedir(),
+  "Library",
+  "Application Support",
+  "Cursor",
+  "User",
+  "workspaceStorage"
+);
 
-/**
- * Extract project name from a Cursor project directory name.
- * Directory names look like `Users-acar-www-project-name`.
- * Take the last segment after `www-` if present, otherwise last segment.
- */
 function extractProjectName(dirName: string): string {
   const parts = dirName.replace(/^-+/, "").split("-");
   const wwwIdx = parts.lastIndexOf("www");
@@ -20,9 +23,6 @@ function extractProjectName(dirName: string): string {
   return parts[parts.length - 1] || dirName;
 }
 
-/**
- * Strip <user_query>...</user_query> tags from user message text.
- */
 function stripUserQueryTags(text: string): string {
   return text
     .replace(/<user_query>\s*/g, "")
@@ -30,9 +30,6 @@ function stripUserQueryTags(text: string): string {
     .trim();
 }
 
-/**
- * Extract text content from a message content array.
- */
 function extractTextFromContent(content: unknown): string {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
@@ -46,13 +43,66 @@ function extractTextFromContent(content: unknown): string {
 }
 
 /**
- * Parse a single Cursor JSONL file.
+ * Build a timestamp lookup from Cursor's workspace SQLite databases.
+ * Key: first 60 chars of prompt text -> timestamp in ms
  */
+async function loadTimestampMap(): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+
+  try {
+    let Database;
+    try {
+      Database = require("better-sqlite3");
+    } catch {
+      return map;
+    }
+
+    const wsDir = CURSOR_WORKSPACE_DIR;
+    if (!fs.existsSync(wsDir)) return map;
+
+    const workspaces = await fs.promises.readdir(wsDir);
+    for (const ws of workspaces) {
+      const dbPath = path.join(wsDir, ws, "state.vscdb");
+      if (!fs.existsSync(dbPath)) continue;
+
+      try {
+        const db = new Database(dbPath, { readonly: true });
+        const row = db
+          .prepare("SELECT value FROM ItemTable WHERE key = 'aiService.generations'")
+          .get() as { value: string } | undefined;
+        db.close();
+
+        if (!row?.value) continue;
+
+        const records = JSON.parse(row.value);
+        if (!Array.isArray(records)) continue;
+
+        for (const r of records) {
+          const ts = r.unixMs as number;
+          const text = (r.textDescription as string) || "";
+          if (ts && text) {
+            // Use first 60 chars as key for matching
+            const key = text.trim().slice(0, 60).toLowerCase();
+            map.set(key, ts);
+          }
+        }
+      } catch {
+        // Skip corrupt databases
+      }
+    }
+  } catch {
+    // Workspace dir not accessible
+  }
+
+  return map;
+}
+
 async function parseJsonlFile(
   filePath: string,
   projectDirName: string,
   fileBirthtime: number,
-  fileMtime: number
+  fileMtime: number,
+  timestampMap: Map<string, number>
 ): Promise<ParsedPrompt[]> {
   const results: ParsedPrompt[] = [];
 
@@ -67,19 +117,18 @@ async function parseJsonlFile(
     try {
       messages.push(JSON.parse(trimmed));
     } catch {
-      // Skip malformed lines
+      // skip
     }
   }
 
   const projectName = extractProjectName(projectDirName);
   const sessionId = path.basename(path.dirname(filePath));
 
-  // Count user messages first to distribute timestamps across session duration
-  const userMsgIndices: number[] = [];
-  for (let i = 0; i < messages.length; i++) {
-    if (messages[i].role === "user") userMsgIndices.push(i);
+  // Count user messages for fallback timestamp distribution
+  let userCount = 0;
+  for (const msg of messages) {
+    if (msg.role === "user") userCount++;
   }
-  const totalUsers = userMsgIndices.length;
 
   let userIndex = 0;
   for (let i = 0; i < messages.length; i++) {
@@ -112,23 +161,36 @@ async function parseJsonlFile(
       : undefined;
     const responsePreview = responseText ? responseText.slice(0, 200) : undefined;
 
-    // Distribute timestamps proportionally between file birth and mtime
-    const sessionStart = fileBirthtime;
-    const sessionEnd = fileMtime;
-    const duration = Math.max(sessionEnd - sessionStart, 60_000); // at least 1 min
-    const promptTimestamp = totalUsers <= 1
-      ? sessionEnd
-      : sessionStart + Math.round((userIndex / (totalUsers - 1)) * duration);
+    // Try to find real timestamp from workspace DB
+    const lookupKey = promptText.trim().slice(0, 60).toLowerCase();
+    let timestamp = timestampMap.get(lookupKey);
+
+    // For the LAST user message: use file mtime (most accurate for recent prompts)
+    // because aiService.generations may not have synced yet
+    const isLastUser = userIndex === userCount - 1;
+    if (isLastUser) {
+      // mtime updates immediately when new message is written to JSONL
+      timestamp = fileMtime;
+    }
+
+    // Fallback: distribute between birthtime and mtime
+    if (!timestamp) {
+      const duration = Math.max(fileMtime - fileBirthtime, 60_000);
+      timestamp = userCount <= 1
+        ? fileMtime
+        : fileBirthtime + Math.round((userIndex / (userCount - 1)) * duration);
+    }
 
     results.push({
       sessionId,
       projectName,
-      timestamp: promptTimestamp,
+      timestamp,
       promptText,
       responsePreview,
       model: "Cursor",
       rawMetadata: {
         sourceFile: filePath,
+        hasRealTimestamp: timestampMap.has(lookupKey),
       },
     });
 
@@ -138,10 +200,9 @@ async function parseJsonlFile(
   return results;
 }
 
-/**
- * Recursively find all JSONL files under agent-transcripts directories.
- */
-async function findJsonlFiles(basePath: string): Promise<{ filePath: string; projectDir: string }[]> {
+async function findJsonlFiles(
+  basePath: string
+): Promise<{ filePath: string; projectDir: string }[]> {
   const results: { filePath: string; projectDir: string }[] = [];
 
   let projectDirs: string[];
@@ -184,28 +245,20 @@ async function findJsonlFiles(basePath: string): Promise<{ filePath: string; pro
   return results;
 }
 
-/**
- * Count total JSONL files for health check.
- */
-async function countJsonlFiles(basePath: string): Promise<number> {
-  const files = await findJsonlFiles(basePath);
-  return files.length;
-}
-
 export const cursorAdapter: SourceAdapter = {
   id: "cursor",
   name: "Cursor",
   type: "cursor",
   description:
-    "Imports prompt history from Cursor editor's agent transcript logs.",
+    "Imports prompt history from Cursor editor's agent transcript logs with real timestamps.",
 
   getDefaultPath(): string {
-    return PROJECTS_DIR;
+    return CURSOR_PROJECTS_DIR;
   },
 
   async detect(): Promise<boolean> {
     try {
-      await fs.promises.access(PROJECTS_DIR);
+      await fs.promises.access(CURSOR_PROJECTS_DIR);
       return true;
     } catch {
       return false;
@@ -216,12 +269,19 @@ export const cursorAdapter: SourceAdapter = {
     const results: ParsedPrompt[] = [];
     const jsonlFiles = await findJsonlFiles(basePath);
 
+    // Load real timestamps from workspace SQLite
+    const timestampMap = await loadTimestampMap();
+
     for (const { filePath, projectDir } of jsonlFiles) {
       try {
         const stat = await fs.promises.stat(filePath);
-        const birthtime = stat.birthtimeMs;
-        const mtime = stat.mtimeMs;
-        const parsed = await parseJsonlFile(filePath, projectDir, birthtime, mtime);
+        const parsed = await parseJsonlFile(
+          filePath,
+          projectDir,
+          stat.birthtimeMs,
+          stat.mtimeMs,
+          timestampMap
+        );
         results.push(...parsed);
       } catch {
         // Skip corrupt files
@@ -233,7 +293,7 @@ export const cursorAdapter: SourceAdapter = {
 
   async healthCheck(): Promise<AdapterHealth> {
     try {
-      await fs.promises.access(PROJECTS_DIR);
+      await fs.promises.access(CURSOR_PROJECTS_DIR);
     } catch {
       return {
         status: "unavailable",
@@ -243,17 +303,18 @@ export const cursorAdapter: SourceAdapter = {
     }
 
     try {
-      const count = await countJsonlFiles(PROJECTS_DIR);
+      const files = await findJsonlFiles(CURSOR_PROJECTS_DIR);
+      const timestampMap = await loadTimestampMap();
       return {
         status: "healthy",
-        message: `Found ${count} JSONL transcript file(s)`,
+        message: `Found ${files.length} transcript(s), ${timestampMap.size} timestamped prompts`,
         lastChecked: Date.now(),
-        details: { jsonlCount: count },
+        details: { jsonlCount: files.length, timestampedPrompts: timestampMap.size },
       };
     } catch {
       return {
         status: "degraded",
-        message: "Could not read Cursor projects directory",
+        message: "Could not read Cursor projects",
         lastChecked: Date.now(),
       };
     }
