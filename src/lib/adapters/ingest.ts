@@ -61,6 +61,23 @@ export async function ingestSource(
 
   // 2. Clean old data for this source (delete in FK order)
   try {
+    // Also clean any legacy random-UUID sources for this type
+    // (from older versions that used generateId() instead of deterministic IDs)
+    const allSources = db.select().from(schema.sources).all();
+    const legacySources = allSources.filter(
+      (s) => s.type === sourceType && s.id !== sourceId
+    );
+    for (const legacy of legacySources) {
+      const lp = db.select({ id: schema.prompts.id }).from(schema.prompts).where(eq(schema.prompts.sourceId, legacy.id)).all();
+      for (const p of lp) {
+        db.delete(schema.promptFiles).where(eq(schema.promptFiles.promptId, p.id)).run();
+        db.delete(schema.promptTags).where(eq(schema.promptTags.promptId, p.id)).run();
+      }
+      db.delete(schema.prompts).where(eq(schema.prompts.sourceId, legacy.id)).run();
+      db.delete(schema.sessions).where(eq(schema.sessions.sourceId, legacy.id)).run();
+      db.delete(schema.sources).where(eq(schema.sources.id, legacy.id)).run();
+    }
+
     // Get prompt IDs for this source to clean related tables
     const oldPrompts = db
       .select({ id: schema.prompts.id })

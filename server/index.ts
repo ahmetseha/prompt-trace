@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { statsRouter } from './routes/stats';
 import { promptsRouter } from './routes/prompts';
 import { sessionsRouter } from './routes/sessions';
@@ -25,12 +26,25 @@ app.use('/api/data', dataRouter);
 app.use('/api/ingest', ingestRouter);
 
 // Serve static files from Vite build
-const distPath = path.join(__dirname, '..', 'dist');
+const distPath = path.join(process.cwd(), 'dist');
 app.use(express.static(distPath));
 
 // SPA fallback - serve index.html for all non-API routes
-app.get('/{*path}', (req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'));
+const indexFile = path.join(distPath, 'index.html');
+let indexHtml = '';
+try { indexHtml = fs.readFileSync(indexFile, 'utf-8'); } catch { /* will retry */ }
+
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) return next();
+  if (!indexHtml) {
+    try { indexHtml = fs.readFileSync(indexFile, 'utf-8'); } catch { /* still building */ }
+  }
+  if (indexHtml) {
+    res.setHeader('Content-Type', 'text/html');
+    res.send(indexHtml);
+  } else {
+    res.status(200).send('<html><body style="background:#09090b;color:#a1a1aa;display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui">Building dashboard... please refresh.</body></html>');
+  }
 });
 
 const port = process.env.PORT || 3001;
