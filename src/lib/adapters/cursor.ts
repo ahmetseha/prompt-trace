@@ -97,12 +97,63 @@ async function loadTimestampMap(): Promise<Map<string, number>> {
   return map;
 }
 
+/**
+ * Load model info per conversation from Cursor's ai-tracking database.
+ * Key: conversationId (= composerId = session UUID) -> model name
+ */
+async function loadModelMap(): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  try {
+    let Database;
+    try { Database = require("better-sqlite3"); } catch { return map; }
+
+    const dbPath = path.join(os.homedir(), ".cursor", "ai-tracking", "ai-code-tracking.db");
+    if (!fs.existsSync(dbPath)) return map;
+
+    const db = new Database(dbPath, { readonly: true });
+    const rows = db.prepare(`
+      SELECT conversationId, model, count(*) as cnt
+      FROM ai_code_hashes
+      WHERE model != '' AND conversationId != ''
+      GROUP BY conversationId, model
+      ORDER BY cnt DESC
+    `).all() as { conversationId: string; model: string; cnt: number }[];
+    db.close();
+
+    // Pick the most-used model per conversation
+    for (const row of rows) {
+      if (!map.has(row.conversationId)) {
+        let model = row.model;
+        if (model === "default" || model === "") continue;
+        // Clean up model name for display
+        model = model
+          .replace(/-high-thinking$/, "")
+          .replace(/^composer-/, "Cursor Composer ");
+        map.set(row.conversationId, model);
+      }
+    }
+
+    // Also try to get model from conversation_summaries
+    const summaries = db.prepare(`
+      SELECT conversationId, model FROM conversation_summaries
+      WHERE model IS NOT NULL AND model != ''
+    `).all() as { conversationId: string; model: string }[];
+    for (const s of summaries) {
+      if (!map.has(s.conversationId)) {
+        map.set(s.conversationId, s.model);
+      }
+    }
+  } catch { /* ignore */ }
+  return map;
+}
+
 async function parseJsonlFile(
   filePath: string,
   projectDirName: string,
   fileBirthtime: number,
   fileMtime: number,
-  timestampMap: Map<string, number>
+  timestampMap: Map<string, number>,
+  modelMap: Map<string, string>
 ): Promise<ParsedPrompt[]> {
   const results: ParsedPrompt[] = [];
 
@@ -187,7 +238,7 @@ async function parseJsonlFile(
       timestamp,
       promptText,
       responsePreview,
-      model: "Cursor",
+      model: modelMap.get(sessionId) || "Cursor Agent",
       rawMetadata: {
         sourceFile: filePath,
         hasRealTimestamp: timestampMap.has(lookupKey),
@@ -269,8 +320,9 @@ export const cursorAdapter: SourceAdapter = {
     const results: ParsedPrompt[] = [];
     const jsonlFiles = await findJsonlFiles(basePath);
 
-    // Load real timestamps from workspace SQLite
+    // Load real timestamps and model info from Cursor databases
     const timestampMap = await loadTimestampMap();
+    const modelMap = await loadModelMap();
 
     for (const { filePath, projectDir } of jsonlFiles) {
       try {
@@ -280,7 +332,8 @@ export const cursorAdapter: SourceAdapter = {
           projectDir,
           stat.birthtimeMs,
           stat.mtimeMs,
-          timestampMap
+          timestampMap,
+          modelMap
         );
         results.push(...parsed);
       } catch {
