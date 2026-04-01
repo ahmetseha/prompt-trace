@@ -89,3 +89,13 @@ body {
   border-color: #27272a !important;
   border-radius: 8px !important;
 }
+
+/* Remove focus/click outline from all Recharts elements */
+.recharts-surface,
+.recharts-surface *,
+.recharts-wrapper,
+.recharts-wrapper *  {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
