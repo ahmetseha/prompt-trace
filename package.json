@@ -1,6 +1,6 @@
 {
   "name": "prompttrace",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Local-first prompt intelligence for developers. Analyze, search, and improve your AI prompting workflow.",
   "bin": {
     "prompttrace": "bin/cli.mjs"
@@ -8,10 +8,14 @@
   "files": [
     "bin/",
     "src/",
-    "next.config.ts",
+    "server/",
+    "public/favicon.svg",
+    "index.html",
     "tsconfig.json",
+    "tsconfig.server.json",
+    "vite.config.ts",
     "postcss.config.mjs",
-    "next-env.d.ts",
+    "vite-env.d.ts",
     "README.md",
     "LICENSE"
   ],
