@@ -7,6 +7,8 @@ export interface PromptFilterValues {
   model: string;
   project: string;
   sort: string;
+  quality: string;
+  intent: string;
 }
 
 interface PromptFiltersProps {
@@ -56,6 +58,8 @@ export function PromptFilters({
     filters.category ||
     filters.model ||
     filters.project ||
+    filters.quality ||
+    filters.intent ||
     filters.sort !== "newest";
 
   return (
@@ -128,6 +132,35 @@ export function PromptFilters({
         ))}
       </select>
 
+      {/* Quality */}
+      <select
+        value={filters.quality}
+        onChange={(e) => update({ quality: e.target.value })}
+        className={selectClass}
+      >
+        <option value="">All Quality</option>
+        <option value="high">High Quality (success &gt; 60)</option>
+        <option value="weak">Weak (success &lt; 40)</option>
+        <option value="reusable">High Reuse (reuse &gt; 60)</option>
+      </select>
+
+      {/* Intent */}
+      <select
+        value={filters.intent}
+        onChange={(e) => update({ intent: e.target.value })}
+        className={selectClass}
+      >
+        <option value="">All Intents</option>
+        <option value="ask">Ask</option>
+        <option value="instruct">Instruct</option>
+        <option value="compare">Compare</option>
+        <option value="generate">Generate</option>
+        <option value="fix">Fix</option>
+        <option value="explain">Explain</option>
+        <option value="plan">Plan</option>
+        <option value="transform">Transform</option>
+      </select>
+
       {/* Sort */}
       <select
         value={filters.sort}
@@ -151,6 +184,8 @@ export function PromptFilters({
               model: "",
               project: "",
               sort: "newest",
+              quality: "",
+              intent: "",
             })
           }
           className="inline-flex items-center gap-1 rounded-lg border border-zinc-800 px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-300"

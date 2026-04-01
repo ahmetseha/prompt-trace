@@ -21,6 +21,10 @@ export function PromptListItem({
   const text = prompt.promptText ?? "";
   const preview = truncate(text, 100);
 
+  // Parse optimization score from metadata if available
+  const metadata = prompt.metadataJson ? (() => { try { return JSON.parse(prompt.metadataJson); } catch { return null; } })() : null;
+  const optimizationScore = metadata?.optimizationScore ?? metadata?.optimization_score ?? null;
+
   return (
     <Link
       to={`/dashboard/prompts/${prompt.id}`}
@@ -39,6 +43,24 @@ export function PromptListItem({
 
             {prompt.category && (
               <CategoryBadge category={prompt.category} />
+            )}
+
+            {prompt.intent && (
+              <span className="rounded-md bg-zinc-700 px-1.5 py-0.5 text-zinc-300 capitalize">
+                {prompt.intent}
+              </span>
+            )}
+
+            {prompt.successScore != null && prompt.successScore < 40 && (
+              <span className="rounded-md bg-red-900/50 px-1.5 py-0.5 text-red-400">
+                Weak
+              </span>
+            )}
+
+            {prompt.reuseScore != null && prompt.reuseScore > 60 && (
+              <span className="rounded-md bg-emerald-900/50 px-1.5 py-0.5 text-emerald-400">
+                Reusable
+              </span>
             )}
 
             {prompt.model && (
@@ -103,6 +125,16 @@ export function PromptListItem({
               </div>
               <span className="w-7 text-right text-[11px] tabular-nums text-zinc-400">
                 {Math.round(prompt.successScore)}%
+              </span>
+            </div>
+          )}
+
+          {/* Optimization score from metadata */}
+          {optimizationScore != null && (
+            <div className="flex items-center gap-2" title="Optimization Score">
+              <span className="text-[11px] text-zinc-500">Optim</span>
+              <span className="text-[11px] tabular-nums text-amber-400">
+                {Math.round(optimizationScore)}%
               </span>
             </div>
           )}

@@ -185,6 +185,34 @@ export async function ingestSource(
     errors.push(`Template refresh warning: ${msg}`);
   }
 
+  // 6. Refresh packs
+  try {
+    const allSessions = db.select().from(schema.sessions).all();
+    const allPrompts = db.select().from(schema.prompts).all();
+    const { refreshPacks } = await import("@/lib/analysis/pack-generator");
+    await refreshPacks(
+      allSessions as import("@/lib/types").Session[],
+      allPrompts as import("@/lib/types").Prompt[]
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    errors.push(`Pack refresh warning: ${msg}`);
+  }
+
+  // 7. Refresh standards
+  try {
+    const allPromptsForStandards = db.select().from(schema.prompts).all();
+    const allTemplates = db.select().from(schema.templateCandidates).all();
+    const { refreshStandards } = await import("@/lib/analysis/standard-generator");
+    await refreshStandards(
+      allPromptsForStandards as import("@/lib/types").Prompt[],
+      allTemplates as import("@/lib/types").TemplateCandidate[]
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    errors.push(`Standards refresh warning: ${msg}`);
+  }
+
   return {
     sourceId,
     promptsIngested: data.prompts.length,

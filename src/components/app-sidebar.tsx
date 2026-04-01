@@ -9,15 +9,21 @@ import {
   Settings,
   Search,
   Zap,
+  BarChart3,
+  Layers,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Prompts", href: "/dashboard/prompts", icon: MessageSquare },
+  { name: "Library", href: "/dashboard/prompts", icon: MessageSquare },
   { name: "Sessions", href: "/dashboard/sessions", icon: Clock },
   { name: "Projects", href: "/dashboard/projects", icon: FolderOpen },
+  { name: "Outcomes", href: "/dashboard/outcomes", icon: BarChart3 },
   { name: "Templates", href: "/dashboard/templates", icon: FileText },
+  { name: "Packs", href: "/dashboard/packs", icon: Layers },
+  { name: "Standards", href: "/dashboard/standards", icon: Shield },
   { name: "Sources", href: "/dashboard/sources", icon: Plug },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];

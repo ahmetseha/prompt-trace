@@ -9,8 +9,8 @@ const pageTitles: Record<string, { title: string; description: string }> = {
     description: "Your AI prompting activity at a glance",
   },
   "/dashboard/prompts": {
-    title: "Prompts",
-    description: "Search and explore your prompt history",
+    title: "Library",
+    description: "Your prompt asset library",
   },
   "/dashboard/sessions": {
     title: "Sessions",
@@ -23,6 +23,18 @@ const pageTitles: Record<string, { title: string; description: string }> = {
   "/dashboard/templates": {
     title: "Templates",
     description: "Reusable prompt patterns extracted from your history",
+  },
+  "/dashboard/outcomes": {
+    title: "Outcomes",
+    description: "Prompt effectiveness and downstream impact",
+  },
+  "/dashboard/packs": {
+    title: "Packs",
+    description: "Reusable prompt workflow sequences",
+  },
+  "/dashboard/standards": {
+    title: "Standards",
+    description: "Best-practice prompt structures",
   },
   "/dashboard/sources": {
     title: "Sources",

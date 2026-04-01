@@ -24,6 +24,8 @@ export function PromptsExplorer({
     model: "",
     project: "",
     sort: "newest",
+    quality: "",
+    intent: "",
   });
 
   // Derive filter options from data
@@ -67,6 +69,16 @@ export function PromptsExplorer({
   }, [projects]);
 
   // Filter and sort
+  // Summary counts
+  const weakCount = useMemo(
+    () => prompts.filter((p) => (p.successScore ?? 100) < 40).length,
+    [prompts]
+  );
+  const reusableCount = useMemo(
+    () => prompts.filter((p) => (p.reuseScore ?? 0) > 60).length,
+    [prompts]
+  );
+
   const filtered = useMemo(() => {
     let result = prompts;
 
@@ -94,6 +106,24 @@ export function PromptsExplorer({
 
     if (filters.project) {
       result = result.filter((p) => p.projectId === filters.project);
+    }
+
+    if (filters.quality) {
+      switch (filters.quality) {
+        case "high":
+          result = result.filter((p) => (p.successScore ?? 0) > 60);
+          break;
+        case "weak":
+          result = result.filter((p) => (p.successScore ?? 100) < 40);
+          break;
+        case "reusable":
+          result = result.filter((p) => (p.reuseScore ?? 0) > 60);
+          break;
+      }
+    }
+
+    if (filters.intent) {
+      result = result.filter((p) => p.intent === filters.intent);
     }
 
     // Sort
@@ -128,9 +158,17 @@ export function PromptsExplorer({
         projects={projects.map((p) => ({ id: p.id, name: p.name }))}
       />
 
-      <p className="text-sm text-zinc-500">
-        {filtered.length} {filtered.length === 1 ? "prompt" : "prompts"} found
-      </p>
+      <div className="flex items-center gap-4 text-sm">
+        <span className="text-zinc-500">
+          {filtered.length} {filtered.length === 1 ? "prompt" : "prompts"}
+        </span>
+        {weakCount > 0 && (
+          <span className="text-red-400">{weakCount} weak</span>
+        )}
+        {reusableCount > 0 && (
+          <span className="text-emerald-400">{reusableCount} reusable</span>
+        )}
+      </div>
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-zinc-800/50 py-16 text-center">

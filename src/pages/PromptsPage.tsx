@@ -26,9 +26,9 @@ export function PromptsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-white">Prompts</h1>
+        <h1 className="text-2xl font-semibold text-white">Library</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Browse and search all captured prompts across your AI coding tools.
+          Your prompt asset library - search, filter, and discover reusable patterns
         </p>
       </div>
 
