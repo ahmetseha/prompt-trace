@@ -18,7 +18,7 @@ export function SourceChart({ data }: SourceChartProps) {
   return (
     <ChartCard title="Sources" description="Prompts by AI tool">
       <div className="h-[220px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <PieChart>
             <Pie
               data={data}

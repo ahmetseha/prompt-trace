@@ -22,7 +22,7 @@ export function CategoryChart({ data }: CategoryChartProps) {
       description="Distribution of prompt types"
     >
       <div className="h-[220px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <BarChart
             data={data.slice(0, 8)}
             layout="vertical"
