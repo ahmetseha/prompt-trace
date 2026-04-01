@@ -1,11 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-/**
- * Background auto-scan component.
- * Triggers a rescan every 60 seconds so new prompts show up
- * without manually clicking "Scan Now".
- */
 export function AutoScan() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const queryClient = useQueryClient();
@@ -13,7 +8,14 @@ export function AutoScan() {
   useEffect(() => {
     async function scan() {
       try {
-        for (const src of ["claude-code", "cursor", "codex-cli"]) {
+        // Discover available sources dynamically
+        const discRes = await fetch("/api/ingest");
+        const discData = await discRes.json();
+        const sources = (discData.sources || discData || [])
+          .filter((s: { available: boolean }) => s.available)
+          .map((s: { adapterId: string }) => s.adapterId);
+
+        for (const src of sources) {
           await fetch("/api/ingest", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -26,14 +28,9 @@ export function AutoScan() {
       }
     }
 
-    // Don't scan immediately on mount (CLI already scans on startup)
     intervalRef.current = setInterval(scan, 60_000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [queryClient]);
 
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  // Invisible component - just runs the interval
   return null;
 }

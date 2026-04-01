@@ -6,7 +6,20 @@ import { api } from '@/lib/api';
 const SOURCE_NAMES: Record<string, string> = {
   'src-claude-code': 'Claude Code',
   'src-cursor': 'Cursor',
+  'src-cursor-agent': 'Cursor Agent',
   'src-codex-cli': 'Codex CLI',
+  'src-vscode': 'VS Code',
+  'src-vscode-insiders': 'VS Code Insiders',
+  'src-copilot-cli': 'Copilot CLI',
+  'src-windsurf': 'Windsurf',
+  'src-windsurf-next': 'Windsurf Next',
+  'src-gemini-cli': 'Gemini CLI',
+  'src-zed': 'Zed',
+  'src-antigravity': 'Antigravity',
+  'src-opencode': 'OpenCode',
+  'src-goose': 'Goose',
+  'src-kiro': 'Kiro',
+  'src-command-code': 'Command Code',
 };
 
 export function DashboardPage() {

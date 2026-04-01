@@ -193,11 +193,21 @@ async function waitForServer(p, timeout) {
 }
 
 async function runIngest(p) {
-  const sources = ["claude-code", "cursor", "codex-cli"];
+  // Discover available sources dynamically
+  let sources;
+  try {
+    const discRes = await fetch(`http://localhost:${p}/api/ingest`);
+    const discData = await discRes.json();
+    const avail = (discData.sources || discData || []).filter(s => s.available);
+    sources = avail.map(s => s.adapterId);
+  } catch {
+    sources = ["claude-code", "cursor", "codex-cli"];
+  }
+  if (sources.length === 0) sources = ["claude-code", "cursor", "codex-cli"];
   let total = 0;
   for (const src of sources) {
     try {
-      const label = { "claude-code": "Claude Code", cursor: "Cursor", "codex-cli": "Codex CLI" }[src] || src;
+      const label = src.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
       process.stdout.write(`  Scanning ${label}... `);
       const res = await fetch(`http://localhost:${p}/api/ingest`, {
         method: "POST",

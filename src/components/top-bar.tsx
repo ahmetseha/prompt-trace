@@ -51,7 +51,14 @@ export function TopBar() {
   async function handleRefresh() {
     setRefreshing(true);
     try {
-      for (const src of ["claude-code", "cursor", "codex-cli"]) {
+      // Discover available sources dynamically
+      const discRes = await fetch("/api/ingest");
+      const discData = await discRes.json();
+      const sources = (discData.sources || discData || [])
+        .filter((s: any) => s.available)
+        .map((s: any) => s.adapterId);
+
+      for (const src of sources) {
         await fetch("/api/ingest", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

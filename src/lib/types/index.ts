@@ -31,10 +31,22 @@ export type PromptIntent =
 
 export type SourceType =
   | 'cursor'
+  | 'cursor-agent'
   | 'claude-code'
+  | 'vscode'
+  | 'vscode-insiders'
   | 'copilot'
+  | 'copilot-cli'
+  | 'windsurf'
+  | 'windsurf-next'
   | 'gemini-cli'
   | 'codex-cli'
+  | 'zed'
+  | 'antigravity'
+  | 'opencode'
+  | 'goose'
+  | 'kiro'
+  | 'command-code'
   | 'json-import'
   | 'markdown-import';
 

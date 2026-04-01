@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { RefreshCw, Loader2, Check, Terminal, Code, Cpu } from "lucide-react";
+import { RefreshCw, Loader2, Check, Terminal, Code, Code2, Cpu, Wind, Zap, Bot, Sparkles, Globe, Bird, Compass, SquareTerminal, Braces } from "lucide-react";
 
 interface DetectedSource {
   adapterId: string;
@@ -69,7 +69,20 @@ export function DiscoverSources({ hasExistingSources }: { hasExistingSources: bo
   const iconMap: Record<string, React.ElementType> = {
     "claude-code": Terminal,
     cursor: Code,
+    "cursor-agent": Code,
     "codex-cli": Cpu,
+    vscode: Code2,
+    "vscode-insiders": Code2,
+    windsurf: Wind,
+    "windsurf-next": Wind,
+    zed: Zap,
+    "gemini-cli": Bot,
+    "copilot-cli": Sparkles,
+    antigravity: Globe,
+    opencode: Braces,
+    goose: Bird,
+    kiro: Compass,
+    "command-code": SquareTerminal,
   };
 
   const available = sources.filter((s) => s.available);
