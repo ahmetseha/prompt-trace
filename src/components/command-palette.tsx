@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Command } from "cmdk";
 import {
   MessageSquare,
@@ -11,14 +12,15 @@ import {
   Plug,
   Settings,
 } from "lucide-react";
-// TODO: Refactor to use data provider from @/lib/data instead of direct demo imports.
-// Since this is a client component, it would need either an API route or props from a server layout.
-import { demoPrompts, demoSessions, demoProjects } from "@/lib/demo/data";
+import { api } from "@/lib/api";
 import { truncate } from "@/lib/utils";
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const routerNavigate = useNavigate();
+  const { data: prompts = [] } = useQuery({ queryKey: ['prompts'], queryFn: () => api.getPrompts() });
+  const { data: sessions = [] } = useQuery({ queryKey: ['sessions'], queryFn: api.getSessions });
+  const { data: projects = [] } = useQuery({ queryKey: ['projects'], queryFn: api.getProjects });
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -131,10 +133,10 @@ export function CommandPalette() {
               heading="Recent Prompts"
               className="px-2 py-1.5 text-xs font-medium text-zinc-500"
             >
-              {demoPrompts
-                .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
+              {[...prompts]
+                .sort((a: any, b: any) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
                 .slice(0, 5)
-                .map((prompt) => (
+                .map((prompt: any) => (
                   <Command.Item
                     key={prompt.id}
                     value={prompt.promptText ?? ""}
@@ -157,7 +159,7 @@ export function CommandPalette() {
               heading="Sessions"
               className="px-2 py-1.5 text-xs font-medium text-zinc-500"
             >
-              {demoSessions.slice(0, 4).map((session) => (
+              {sessions.slice(0, 4).map((session: any) => (
                 <Command.Item
                   key={session.id}
                   value={session.title || session.id}
@@ -178,7 +180,7 @@ export function CommandPalette() {
               heading="Projects"
               className="px-2 py-1.5 text-xs font-medium text-zinc-500"
             >
-              {demoProjects.map((project) => (
+              {projects.map((project: any) => (
                 <Command.Item
                   key={project.id}
                   value={project.name}
