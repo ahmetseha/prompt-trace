@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Share2, Check, Loader2 } from "lucide-react";
 
 const pageTitles: Record<string, { title: string; description: string }> = {
@@ -35,6 +36,7 @@ const pageTitles: Record<string, { title: string; description: string }> = {
 
 export function TopBar() {
   const { pathname } = useLocation();
+  const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   const [shared, setShared] = useState(false);
 
@@ -56,7 +58,8 @@ export function TopBar() {
           body: JSON.stringify({ sourceType: src }),
         });
       }
-      window.location.reload();
+      // Invalidate all queries so every page refetches fresh data
+      await queryClient.invalidateQueries();
     } catch { /* ignore */ }
     setRefreshing(false);
   }
@@ -80,7 +83,6 @@ export function TopBar() {
         setTimeout(() => setShared(false), 2000);
       }
     } catch {
-      // Fallback: copy URL
       await navigator.clipboard.writeText("https://github.com/ahmetseha/prompt-trace");
       setShared(true);
       setTimeout(() => setShared(false), 2000);
@@ -99,14 +101,14 @@ export function TopBar() {
         <button
           onClick={handleRefresh}
           disabled={refreshing}
-          className="flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-indigo-500 disabled:opacity-50"
         >
           {refreshing ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
-            <RefreshCw className="h-3 w-3" />
+            <RefreshCw className="h-3.5 w-3.5" />
           )}
-          {refreshing ? "Scanning..." : "Refresh"}
+          {refreshing ? "Scanning..." : "Sync"}
         </button>
         <button
           onClick={handleShare}
