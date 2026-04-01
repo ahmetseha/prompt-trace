@@ -3,6 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { DashboardContent } from '@/features/dashboard/dashboard-content';
 import { api } from '@/lib/api';
 
+const SOURCE_NAMES: Record<string, string> = {
+  'src-claude-code': 'Claude Code',
+  'src-cursor': 'Cursor',
+  'src-codex-cli': 'Codex CLI',
+};
+
 export function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['stats'],
@@ -21,15 +27,16 @@ export function DashboardPage() {
 
   const isLoading = statsLoading || promptsLoading || templatesLoading;
 
-  if (isLoading) return <PageLoader />;
+  if (isLoading || !stats || !prompts || !templates) return <PageLoader />;
 
-  const categoryData = Object.entries(stats.promptsByCategory)
+  const categoryData = Object.entries(stats.promptsByCategory || {})
+    .filter(([cat]) => cat !== 'unknown')
     .map(([category, count]: [string, any]) => ({ category, count }))
     .sort((a: any, b: any) => b.count - a.count);
 
   const sourceData = Object.entries(
     (prompts as any[]).reduce<Record<string, number>>((acc, p) => {
-      const name = p.sourceId?.replace('src-', '') || 'unknown';
+      const name = SOURCE_NAMES[p.sourceId] || p.sourceId || 'Other';
       acc[name] = (acc[name] || 0) + 1;
       return acc;
     }, {})
@@ -37,7 +44,8 @@ export function DashboardPage() {
     .map(([source, count]) => ({ source, count }))
     .sort((a, b) => b.count - a.count);
 
-  const modelData = Object.entries(stats.promptsByModel)
+  const modelData = Object.entries(stats.promptsByModel || {})
+    .filter(([model]) => model && model !== '')
     .map(([model, count]: [string, any]) => ({ model, count }))
     .sort((a: any, b: any) => b.count - a.count);
 

@@ -188,9 +188,7 @@ export function classifyCategory(promptText: string): PromptCategory {
   }
 
   if (scores.size === 0) {
-    // Short general commands without keywords -> "general" instead of "unknown"
-    if (trimmed.length < 200) return 'general';
-    return 'unknown';
+    return 'general';
   }
 
   let best: PromptCategory = 'unknown';
