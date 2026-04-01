@@ -8,17 +8,30 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   getStats: () => fetchJson<any>('/api/stats'),
-  getPrompts: (params?: Record<string, string>) => {
+  getPrompts: async (params?: Record<string, string>) => {
     const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-    return fetchJson<any>(`/api/prompts${qs}`);
+    const data = await fetchJson<any>(`/api/prompts${qs}`);
+    return data.prompts ?? data;
   },
   getPromptById: (id: string) => fetchJson<any>(`/api/prompts/${id}`),
-  getSessions: () => fetchJson<any>('/api/sessions'),
+  getSessions: async () => {
+    const data = await fetchJson<any>('/api/sessions');
+    return data.sessions ?? data;
+  },
   getSessionById: (id: string) => fetchJson<any>(`/api/sessions/${id}`),
-  getProjects: () => fetchJson<any>('/api/projects'),
+  getProjects: async () => {
+    const data = await fetchJson<any>('/api/projects');
+    return data.projects ?? data;
+  },
   getProjectById: (id: string) => fetchJson<any>(`/api/projects/${id}`),
-  getTemplates: () => fetchJson<any>('/api/templates'),
-  getSources: () => fetchJson<any>('/api/sources'),
+  getTemplates: async () => {
+    const data = await fetchJson<any>('/api/templates');
+    return data.templates ?? data;
+  },
+  getSources: async () => {
+    const data = await fetchJson<any>('/api/sources');
+    return data.sources ?? data;
+  },
   search: (q: string) => fetchJson<any>(`/api/search?q=${encodeURIComponent(q)}`),
   getDataInfo: () => fetchJson<any>('/api/data'),
   clearData: () => fetchJson<any>('/api/data', { method: 'DELETE' }),
@@ -27,5 +40,8 @@ export const api = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sourceType }),
   }),
-  discoverSources: () => fetchJson<any>('/api/ingest'),
+  discoverSources: async () => {
+    const data = await fetchJson<any>('/api/ingest');
+    return data.sources ?? data;
+  },
 };
