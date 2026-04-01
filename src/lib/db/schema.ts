@@ -108,6 +108,8 @@ export const promptsRelations = relations(prompts, ({ one, many }) => ({
   }),
   files: many(promptFiles),
   tags: many(promptTags),
+  analysis: many(promptAnalysis),
+  outcomes: many(promptOutcomes),
 }));
 
 // ---------------------------------------------------------------------------
@@ -159,6 +161,88 @@ export const templateCandidates = sqliteTable('template_candidates', {
   sourcePromptIdsJson: text('source_prompt_ids_json'),
   reuseScore: real('reuse_score'),
   category: text('category'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Prompt Analysis
+// ---------------------------------------------------------------------------
+export const promptAnalysis = sqliteTable('prompt_analysis', {
+  id: text('id').primaryKey(),
+  promptId: text('prompt_id').notNull().references(() => prompts.id),
+  clarityScore: real('clarity_score'),
+  specificityScore: real('specificity_score'),
+  constraintScore: real('constraint_score'),
+  contextEfficiencyScore: real('context_efficiency_score'),
+  ambiguityScore: real('ambiguity_score'),
+  optimizationScore: real('optimization_score'),
+  strengthsJson: text('strengths_json'),
+  weaknessesJson: text('weaknesses_json'),
+  antiPatternsJson: text('anti_patterns_json'),
+  suggestionsJson: text('suggestions_json'),
+  improvedPromptText: text('improved_prompt_text'),
+  templatePromptText: text('template_prompt_text'),
+  whenToUse: text('when_to_use'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export const promptAnalysisRelations = relations(promptAnalysis, ({ one }) => ({
+  prompt: one(prompts, {
+    fields: [promptAnalysis.promptId],
+    references: [prompts.id],
+  }),
+}));
+
+// ---------------------------------------------------------------------------
+// Prompt Outcomes
+// ---------------------------------------------------------------------------
+export const promptOutcomes = sqliteTable('prompt_outcomes', {
+  id: text('id').primaryKey(),
+  promptId: text('prompt_id').notNull().references(() => prompts.id),
+  fileChangeCount: integer('file_change_count'),
+  followUpCount: integer('follow_up_count'),
+  sessionContinuationScore: real('session_continuation_score'),
+  repeatedLater: integer('repeated_later'),
+  abandonmentRisk: real('abandonment_risk'),
+  outcomeSummaryJson: text('outcome_summary_json'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export const promptOutcomesRelations = relations(promptOutcomes, ({ one }) => ({
+  prompt: one(prompts, {
+    fields: [promptOutcomes.promptId],
+    references: [prompts.id],
+  }),
+}));
+
+// ---------------------------------------------------------------------------
+// Prompt Packs
+// ---------------------------------------------------------------------------
+export const promptPacks = sqliteTable('prompt_packs', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  description: text('description'),
+  workflowType: text('workflow_type'),
+  score: real('score'),
+  stepsJson: text('steps_json'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Standards / Playbooks
+// ---------------------------------------------------------------------------
+export const standards = sqliteTable('standards', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  category: text('category'),
+  description: text('description'),
+  recommendedStructure: text('recommended_structure'),
+  examplesJson: text('examples_json'),
+  notesJson: text('notes_json'),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull(),
 });

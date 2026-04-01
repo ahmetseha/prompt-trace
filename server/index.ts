@@ -10,6 +10,10 @@ import { sourcesRouter } from './routes/sources';
 import { searchRouter } from './routes/search';
 import { dataRouter } from './routes/data';
 import { ingestRouter } from './routes/ingest';
+import { analysisRouter } from './routes/analysis';
+import { packsRouter } from './routes/packs';
+import { standardsRouter } from './routes/standards';
+import { overviewRouter } from './routes/overview';
 
 const app = express();
 app.use(express.json());
@@ -24,6 +28,10 @@ app.use('/api/sources', sourcesRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/data', dataRouter);
 app.use('/api/ingest', ingestRouter);
+app.use('/api/prompts', analysisRouter);
+app.use('/api/packs', packsRouter);
+app.use('/api/standards', standardsRouter);
+app.use('/api/overview', overviewRouter);
 
 // Serve static files from Vite build
 const distPath = path.join(process.cwd(), 'dist');

@@ -45,4 +45,17 @@ export const api = {
     const data = await fetchJson<any>('/api/ingest');
     return data.sources ?? data;
   },
+  getPromptAnalysis: (id: string) => fetchJson<any>(`/api/prompts/${id}/analysis`),
+  getPromptOutcomes: (id: string) => fetchJson<any>(`/api/prompts/${id}/outcomes`),
+  getOpportunities: () => fetchJson<any>('/api/overview/opportunities'),
+  getPacks: async () => {
+    const data = await fetchJson<any>('/api/packs');
+    return data.packs ?? data;
+  },
+  getPackById: (id: string) => fetchJson<any>(`/api/packs/${id}`),
+  getStandards: async () => {
+    const data = await fetchJson<any>('/api/standards');
+    return data.standards ?? data;
+  },
+  getStandardById: (id: string) => fetchJson<any>(`/api/standards/${id}`),
 };

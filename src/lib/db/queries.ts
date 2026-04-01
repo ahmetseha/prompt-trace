@@ -503,3 +503,274 @@ export async function searchAll(query: string): Promise<{
     return { prompts: [], sessions: [], projects: [] };
   }
 }
+
+// ---------------------------------------------------------------------------
+// Analysis
+// ---------------------------------------------------------------------------
+
+export async function getPromptAnalysis(promptId: string) {
+  try {
+    const row = db
+      .select()
+      .from(schema.promptAnalysis)
+      .where(eq(schema.promptAnalysis.promptId, promptId))
+      .get();
+    return row ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function savePromptAnalysis(promptId: string, analysis: any) {
+  try {
+    const now = Date.now();
+    const existing = await getPromptAnalysis(promptId);
+    if (existing) {
+      db.update(schema.promptAnalysis)
+        .set({ ...analysis, updatedAt: now })
+        .where(eq(schema.promptAnalysis.promptId, promptId))
+        .run();
+      return existing.id;
+    }
+    const id = crypto.randomUUID();
+    db.insert(schema.promptAnalysis)
+      .values({ id, promptId, ...analysis, createdAt: now, updatedAt: now })
+      .run();
+    return id;
+  } catch (e) {
+    console.error('Failed to save prompt analysis:', e);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Outcomes
+// ---------------------------------------------------------------------------
+
+export async function getPromptOutcomes(promptId: string) {
+  try {
+    const row = db
+      .select()
+      .from(schema.promptOutcomes)
+      .where(eq(schema.promptOutcomes.promptId, promptId))
+      .get();
+    return row ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function savePromptOutcomes(promptId: string, outcomes: any) {
+  try {
+    const now = Date.now();
+    const existing = await getPromptOutcomes(promptId);
+    if (existing) {
+      db.update(schema.promptOutcomes)
+        .set({ ...outcomes, updatedAt: now })
+        .where(eq(schema.promptOutcomes.promptId, promptId))
+        .run();
+      return existing.id;
+    }
+    const id = crypto.randomUUID();
+    db.insert(schema.promptOutcomes)
+      .values({ id, promptId, ...outcomes, createdAt: now, updatedAt: now })
+      .run();
+    return id;
+  } catch (e) {
+    console.error('Failed to save prompt outcomes:', e);
+    return null;
+  }
+}
+
+export async function getWeakPrompts(limit = 20): Promise<Prompt[]> {
+  try {
+    const analysisRows = db
+      .select()
+      .from(schema.promptAnalysis)
+      .orderBy(asc(schema.promptAnalysis.optimizationScore))
+      .limit(limit)
+      .all();
+    const promptIds = analysisRows.map((r) => r.promptId);
+    if (promptIds.length === 0) return [];
+    const rows = db
+      .select()
+      .from(schema.prompts)
+      .where(inArray(schema.prompts.id, promptIds))
+      .all();
+    return rows as Prompt[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getStrongPrompts(limit = 20): Promise<Prompt[]> {
+  try {
+    const rows = db
+      .select()
+      .from(schema.prompts)
+      .orderBy(desc(schema.prompts.reuseScore))
+      .limit(limit)
+      .all();
+    // Filter to those with a success score above threshold
+    return (rows as Prompt[]).filter(
+      (p) => (p.successScore ?? 0) > 0.5 || (p.reuseScore ?? 0) > 0.5,
+    );
+  } catch {
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Packs
+// ---------------------------------------------------------------------------
+
+export async function getPromptPacks() {
+  try {
+    const rows = db
+      .select()
+      .from(schema.promptPacks)
+      .orderBy(desc(schema.promptPacks.score))
+      .all();
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
+export async function getPromptPackById(id: string) {
+  try {
+    const row = db
+      .select()
+      .from(schema.promptPacks)
+      .where(eq(schema.promptPacks.id, id))
+      .get();
+    return row ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function savePromptPack(pack: any) {
+  try {
+    const now = Date.now();
+    if (pack.id) {
+      const existing = db
+        .select()
+        .from(schema.promptPacks)
+        .where(eq(schema.promptPacks.id, pack.id))
+        .get();
+      if (existing) {
+        db.update(schema.promptPacks)
+          .set({ ...pack, updatedAt: now })
+          .where(eq(schema.promptPacks.id, pack.id))
+          .run();
+        return pack.id;
+      }
+    }
+    const id = pack.id || crypto.randomUUID();
+    db.insert(schema.promptPacks)
+      .values({ ...pack, id, createdAt: now, updatedAt: now })
+      .run();
+    return id;
+  } catch (e) {
+    console.error('Failed to save prompt pack:', e);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Standards
+// ---------------------------------------------------------------------------
+
+export async function getStandards() {
+  try {
+    const rows = db
+      .select()
+      .from(schema.standards)
+      .orderBy(asc(schema.standards.title))
+      .all();
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
+export async function getStandardById(id: string) {
+  try {
+    const row = db
+      .select()
+      .from(schema.standards)
+      .where(eq(schema.standards.id, id))
+      .get();
+    return row ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveStandard(standard: any) {
+  try {
+    const now = Date.now();
+    if (standard.id) {
+      const existing = db
+        .select()
+        .from(schema.standards)
+        .where(eq(schema.standards.id, standard.id))
+        .get();
+      if (existing) {
+        db.update(schema.standards)
+          .set({ ...standard, updatedAt: now })
+          .where(eq(schema.standards.id, standard.id))
+          .run();
+        return standard.id;
+      }
+    }
+    const id = standard.id || crypto.randomUUID();
+    db.insert(schema.standards)
+      .values({ ...standard, id, createdAt: now, updatedAt: now })
+      .run();
+    return id;
+  } catch (e) {
+    console.error('Failed to save standard:', e);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Overview / Optimization Opportunities
+// ---------------------------------------------------------------------------
+
+export async function getOptimizationOpportunities() {
+  try {
+    const weakPrompts = await getWeakPrompts(10);
+    const strongTemplates = await getTemplateCandidates();
+    const topPacks = await getPromptPacks();
+
+    // Compute improvement trend: avg optimization score over recent analyses
+    const analyses = db
+      .select()
+      .from(schema.promptAnalysis)
+      .orderBy(desc(schema.promptAnalysis.createdAt))
+      .limit(50)
+      .all();
+
+    let trendSum = 0;
+    let trendCount = 0;
+    for (const a of analyses) {
+      if (a.optimizationScore != null) {
+        trendSum += a.optimizationScore;
+        trendCount++;
+      }
+    }
+    const improvementTrend = trendCount > 0 ? trendSum / trendCount : 0;
+
+    return {
+      weakPrompts,
+      strongTemplates: strongTemplates.slice(0, 10),
+      topPacks: topPacks.slice(0, 10),
+      improvementTrend,
+    };
+  } catch {
+    return { weakPrompts: [], strongTemplates: [], topPacks: [], improvementTrend: 0 };
+  }
+}

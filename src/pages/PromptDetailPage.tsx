@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft,
+  CheckCircle2,
   ChevronDown,
   Clock,
   Coins,
@@ -11,10 +12,18 @@ import {
   Hash,
   Info,
   Layers,
+  Lightbulb,
+  Loader2,
   MessageSquare,
   Tag,
+  AlertTriangle,
   Zap,
 } from 'lucide-react';
+import { CategoryBadge } from '@/components/category-badge';
+import { SourceIcon } from '@/components/source-icon';
+import { formatDate, formatRelativeDate } from '@/lib/utils';
+import { api } from '@/lib/api';
+import type { SourceType } from '@/lib/types';
 
 function PromptTextBlock({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -52,11 +61,27 @@ function PromptTextBlock({ text }: { text: string }) {
     </div>
   );
 }
-import { CategoryBadge } from '@/components/category-badge';
-import { SourceIcon } from '@/components/source-icon';
-import { formatDate, formatRelativeDate } from '@/lib/utils';
-import { api } from '@/lib/api';
-import type { SourceType } from '@/lib/types';
+
+function ScoreBar({ label, score, explanation }: { label: string; score: number; explanation: string }) {
+  const pct = Math.min(Math.round(score), 100);
+  const color = pct >= 70 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500';
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-sm text-zinc-300">{label}</span>
+        <span className="text-sm tabular-nums text-zinc-200">{pct}%</span>
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
+        <div
+          className={`h-full rounded-full ${color} transition-all`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="mt-1 text-xs text-zinc-500">{explanation}</p>
+    </div>
+  );
+}
 
 const intentLabel: Record<string, string> = {
   ask: 'Ask',
@@ -88,6 +113,13 @@ export function PromptDetailPage() {
     queryFn: api.getProjects,
   });
 
+  const { data: analysis, isLoading: analysisLoading, isError: analysisError } = useQuery({
+    queryKey: ['prompt-analysis', id],
+    queryFn: () => api.getPromptAnalysis(id!),
+    enabled: !!id,
+    retry: 1,
+  });
+
   if (isLoading) return <PageLoader />;
 
   if (!data?.prompt) {
@@ -113,6 +145,14 @@ export function PromptDetailPage() {
   const source = sources?.find((s: any) => s.id === prompt.sourceId);
   const project = projects?.find((p: any) => p.id === prompt.projectId);
 
+  const analysisScores = analysis?.scores ?? [];
+  const strengths: string[] = analysis?.strengths ?? [];
+  const weaknesses: string[] = analysis?.weaknesses ?? [];
+  const suggestions: string[] = analysis?.suggestions ?? [];
+  const improvedVersion: string | null = analysis?.improvedVersion ?? null;
+  const templateVersion: string | null = analysis?.templateVersion ?? null;
+  const whenToUse: string | null = analysis?.whenToUse ?? null;
+
   return (
     <div className="space-y-8">
       {/* Back link */}
@@ -128,7 +168,7 @@ export function PromptDetailPage() {
       <PromptTextBlock text={prompt.promptText ?? ""} />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left column: metadata + scores */}
+        {/* Left column: metadata + scores + analysis */}
         <div className="space-y-6 lg:col-span-1">
           {/* Metadata panel */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
@@ -276,10 +316,153 @@ export function PromptDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* When to Use */}
+          {whenToUse && (
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+              <h3 className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                When to Use
+              </h3>
+              <p className="text-sm leading-relaxed text-zinc-300">{whenToUse}</p>
+            </div>
+          )}
         </div>
 
-        {/* Right column: response, files, tags, related */}
+        {/* Right column: analysis + response, files, tags, related */}
         <div className="space-y-6 lg:col-span-2">
+          {/* Analysis section */}
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+            <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-zinc-500">
+              Analysis
+            </h3>
+            {analysisLoading ? (
+              <div className="flex items-center gap-2 py-8 justify-center text-sm text-zinc-500">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Computing analysis...
+              </div>
+            ) : analysisError || !analysis ? (
+              <div className="py-8 text-center text-sm text-zinc-500">
+                Analysis not available for this prompt.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {analysisScores.length > 0 ? (
+                  analysisScores.map((s: any) => (
+                    <ScoreBar
+                      key={s.label}
+                      label={s.label}
+                      score={s.score}
+                      explanation={s.explanation}
+                    />
+                  ))
+                ) : (
+                  <>
+                    <ScoreBar label="Clarity" score={analysis.clarity ?? 0} explanation={analysis.clarityExplanation ?? "How clear the intent is"} />
+                    <ScoreBar label="Specificity" score={analysis.specificity ?? 0} explanation={analysis.specificityExplanation ?? "Level of detail provided"} />
+                    <ScoreBar label="Constraints" score={analysis.constraints ?? 0} explanation={analysis.constraintsExplanation ?? "Boundaries and limitations defined"} />
+                    <ScoreBar label="Context Efficiency" score={analysis.contextEfficiency ?? 0} explanation={analysis.contextEfficiencyExplanation ?? "Token usage vs information density"} />
+                    <ScoreBar label="Ambiguity" score={analysis.ambiguity ?? 0} explanation={analysis.ambiguityExplanation ?? "Lower is more ambiguous"} />
+                    <ScoreBar label="Optimization" score={analysis.optimization ?? 0} explanation={analysis.optimizationExplanation ?? "Overall optimization potential"} />
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Strengths & Weaknesses */}
+          {!analysisLoading && analysis && (strengths.length > 0 || weaknesses.length > 0) && (
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+              <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                Strengths & Weaknesses
+              </h3>
+              <div className="grid gap-6 sm:grid-cols-2">
+                {/* Strengths */}
+                <div>
+                  <h4 className="mb-2 flex items-center gap-1.5 text-sm font-medium text-emerald-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Strengths
+                  </h4>
+                  <ul className="space-y-1.5">
+                    {strengths.map((s, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-zinc-400">
+                        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500/60" />
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {/* Weaknesses */}
+                <div>
+                  <h4 className="mb-2 flex items-center gap-1.5 text-sm font-medium text-amber-400">
+                    <AlertTriangle className="h-4 w-4" />
+                    Weaknesses
+                  </h4>
+                  <ul className="space-y-1.5">
+                    {weaknesses.map((w, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-zinc-400">
+                        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500/60" />
+                        {w}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Suggestions */}
+          {!analysisLoading && analysis && suggestions.length > 0 && (
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+              <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                Suggestions
+              </h3>
+              <ul className="space-y-2">
+                {suggestions.map((tip, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-zinc-300">
+                    <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-yellow-500" />
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Improved Version */}
+          {!analysisLoading && improvedVersion && (
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+              <h3 className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                Suggested Improvement
+              </h3>
+              <div className="rounded-lg bg-zinc-950 px-4 py-3 overflow-x-auto">
+                <pre className="whitespace-pre-wrap break-words text-sm font-mono leading-relaxed text-zinc-300">
+                  {improvedVersion}
+                </pre>
+              </div>
+            </div>
+          )}
+
+          {/* Template Version */}
+          {!analysisLoading && templateVersion && (
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+              <h3 className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                Reusable Template
+              </h3>
+              <div className="rounded-lg bg-zinc-950 px-4 py-3 overflow-x-auto">
+                <pre className="whitespace-pre-wrap break-words text-sm font-mono leading-relaxed text-zinc-300">
+                  {templateVersion.split(/(\{\{[^}]+\}\})/).map((part, i) =>
+                    /^\{\{[^}]+\}\}$/.test(part) ? (
+                      <span key={i} className="rounded bg-indigo-500/20 px-1 text-indigo-300">
+                        {part}
+                      </span>
+                    ) : (
+                      <span key={i}>{part}</span>
+                    )
+                  )}
+                </pre>
+              </div>
+            </div>
+          )}
+
           {/* Response preview */}
           {prompt.responsePreview && (
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">

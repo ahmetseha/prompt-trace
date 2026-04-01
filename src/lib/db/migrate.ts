@@ -91,6 +91,66 @@ CREATE TABLE IF NOT EXISTS template_candidates (
   updated_at INTEGER NOT NULL
 );`;
 
+const CREATE_PROMPT_ANALYSIS = `
+CREATE TABLE IF NOT EXISTS prompt_analysis (
+  id TEXT PRIMARY KEY NOT NULL,
+  prompt_id TEXT NOT NULL REFERENCES prompts(id),
+  clarity_score REAL,
+  specificity_score REAL,
+  constraint_score REAL,
+  context_efficiency_score REAL,
+  ambiguity_score REAL,
+  optimization_score REAL,
+  strengths_json TEXT,
+  weaknesses_json TEXT,
+  anti_patterns_json TEXT,
+  suggestions_json TEXT,
+  improved_prompt_text TEXT,
+  template_prompt_text TEXT,
+  when_to_use TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);`;
+
+const CREATE_PROMPT_OUTCOMES = `
+CREATE TABLE IF NOT EXISTS prompt_outcomes (
+  id TEXT PRIMARY KEY NOT NULL,
+  prompt_id TEXT NOT NULL REFERENCES prompts(id),
+  file_change_count INTEGER,
+  follow_up_count INTEGER,
+  session_continuation_score REAL,
+  repeated_later INTEGER,
+  abandonment_risk REAL,
+  outcome_summary_json TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);`;
+
+const CREATE_PROMPT_PACKS = `
+CREATE TABLE IF NOT EXISTS prompt_packs (
+  id TEXT PRIMARY KEY NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  workflow_type TEXT,
+  score REAL,
+  steps_json TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);`;
+
+const CREATE_STANDARDS = `
+CREATE TABLE IF NOT EXISTS standards (
+  id TEXT PRIMARY KEY NOT NULL,
+  title TEXT NOT NULL,
+  category TEXT,
+  description TEXT,
+  recommended_structure TEXT,
+  examples_json TEXT,
+  notes_json TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);`;
+
 const CREATE_INDEXES = [
   `CREATE INDEX IF NOT EXISTS idx_sessions_source_id ON sessions(source_id);`,
   `CREATE INDEX IF NOT EXISTS idx_sessions_project_id ON sessions(project_id);`,
@@ -103,6 +163,8 @@ const CREATE_INDEXES = [
   `CREATE INDEX IF NOT EXISTS idx_prompt_files_prompt_id ON prompt_files(prompt_id);`,
   `CREATE INDEX IF NOT EXISTS idx_prompt_tags_prompt_id ON prompt_tags(prompt_id);`,
   `CREATE INDEX IF NOT EXISTS idx_prompt_tags_tag ON prompt_tags(tag);`,
+  `CREATE INDEX IF NOT EXISTS idx_prompt_analysis_prompt_id ON prompt_analysis(prompt_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_prompt_outcomes_prompt_id ON prompt_outcomes(prompt_id);`,
 ];
 
 const MIGRATIONS = [
@@ -113,6 +175,10 @@ const MIGRATIONS = [
   CREATE_PROMPT_FILES,
   CREATE_PROMPT_TAGS,
   CREATE_TEMPLATE_CANDIDATES,
+  CREATE_PROMPT_ANALYSIS,
+  CREATE_PROMPT_OUTCOMES,
+  CREATE_PROMPT_PACKS,
+  CREATE_STANDARDS,
   ...CREATE_INDEXES,
 ];
 
