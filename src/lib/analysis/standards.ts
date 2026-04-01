@@ -169,7 +169,7 @@ export function inferStandards(
     standards.push({
       title: `${titleCase(category)} Prompt Standard`,
       category,
-      description: `Best-practice structure for ${titleCase(category).toLowerCase()} prompts, derived from ${catPrompts.length} examples (top avg success: ${(avgSuccess * 100).toFixed(0)}%).`,
+      description: `Best-practice structure for ${titleCase(category).toLowerCase()} prompts, derived from ${catPrompts.length} examples (top avg success: ${Math.round(avgSuccess)}%).`,
       recommendedStructure,
       examples,
       notes,

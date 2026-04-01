@@ -12,6 +12,7 @@ import {
   BarChart3,
   Layers,
   Shield,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ const navigation = [
   { name: "Templates", href: "/dashboard/templates", icon: FileText },
   { name: "Packs", href: "/dashboard/packs", icon: Layers },
   { name: "Standards", href: "/dashboard/standards", icon: Shield },
+  { name: "Docs", href: "/dashboard/docs", icon: BookOpen },
   { name: "Sources", href: "/dashboard/sources", icon: Plug },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];

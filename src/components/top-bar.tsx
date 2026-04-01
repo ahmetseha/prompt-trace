@@ -36,6 +36,10 @@ const pageTitles: Record<string, { title: string; description: string }> = {
     title: "Standards",
     description: "Best-practice prompt structures",
   },
+  "/dashboard/docs": {
+    title: "Documentation",
+    description: "How scoring, templates, packs, and standards work",
+  },
   "/dashboard/sources": {
     title: "Sources",
     description: "Connected AI tools and import sources",

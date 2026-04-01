@@ -13,6 +13,7 @@ import { OutcomesPage } from './pages/OutcomesPage';
 import { SourcesPage } from './pages/SourcesPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { StandardsPage } from './pages/StandardsPage';
+import { DocsPage } from './pages/DocsPage';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="packs" element={<PacksPage />} />
         <Route path="standards" element={<StandardsPage />} />
         <Route path="sources" element={<SourcesPage />} />
+        <Route path="docs" element={<DocsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
