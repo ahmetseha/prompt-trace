@@ -201,7 +201,7 @@ export function SessionDetailPage() {
                 Categories
               </h2>
               <div className="space-y-2">
-                {categoryEntries.map(([cat, count]) => (
+                {categoryEntries.slice(0, 8).map(([cat, count]) => (
                   <div
                     key={cat}
                     className="flex items-center justify-between"
@@ -210,6 +210,11 @@ export function SessionDetailPage() {
                     <span className="text-xs text-zinc-500">{count}</span>
                   </div>
                 ))}
+                {categoryEntries.length > 8 && (
+                  <p className="text-[11px] text-zinc-600 pt-1">
+                    and {categoryEntries.length - 8} more categories
+                  </p>
+                )}
               </div>
             </div>
           )}

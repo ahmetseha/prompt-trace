@@ -89,7 +89,7 @@ export function SourceCard({ source, promptCount }: SourceCardProps) {
           scanResult.type === "success" ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"
         }`}>
           {scanResult.type === "success" ? <Check className="h-3.5 w-3.5 mt-0.5 shrink-0" /> : <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />}
-          {scanResult.message}
+          <span className="line-clamp-2">{scanResult.message}</span>
         </div>
       )}
 

@@ -420,7 +420,7 @@ export function PromptDetailPage() {
                 {suggestions.map((tip, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-zinc-300">
                     <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-yellow-500" />
-                    {tip}
+                    <span className="line-clamp-2">{tip}</span>
                   </li>
                 ))}
               </ul>
@@ -483,7 +483,7 @@ export function PromptDetailPage() {
                 Files Touched ({files.length})
               </h3>
               <ul className="space-y-1.5">
-                {files.map((f: any) => (
+                {files.slice(0, files.length > 10 ? 8 : files.length).map((f: any) => (
                   <li
                     key={f.id}
                     className="flex items-center gap-2 text-sm text-zinc-400"
@@ -491,9 +491,14 @@ export function PromptDetailPage() {
                     <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[11px] text-zinc-500">
                       {f.actionType ?? 'touch'}
                     </span>
-                    <code className="text-xs text-zinc-300">{f.filePath}</code>
+                    <code className="truncate text-xs text-zinc-300">{f.filePath}</code>
                   </li>
                 ))}
+                {files.length > 10 && (
+                  <li className="text-xs text-zinc-500 pt-1">
+                    and {files.length - 8} more files
+                  </li>
+                )}
               </ul>
             </div>
           )}
@@ -506,7 +511,7 @@ export function PromptDetailPage() {
                 Tags
               </h3>
               <div className="flex flex-wrap gap-2">
-                {tags.map((t: any) => (
+                {tags.slice(0, tags.length > 8 ? 6 : tags.length).map((t: any) => (
                   <span
                     key={t.id}
                     className="inline-flex items-center gap-1 rounded-md border border-zinc-800 bg-zinc-800/50 px-2 py-0.5 text-xs text-zinc-400"
@@ -515,6 +520,11 @@ export function PromptDetailPage() {
                     {t.tag}
                   </span>
                 ))}
+                {tags.length > 8 && (
+                  <span className="inline-flex items-center rounded-md border border-zinc-800 bg-zinc-800/50 px-2 py-0.5 text-xs text-zinc-500">
+                    +{tags.length - 6}
+                  </span>
+                )}
               </div>
             </div>
           )}

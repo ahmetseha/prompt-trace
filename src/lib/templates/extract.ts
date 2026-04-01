@@ -216,8 +216,16 @@ export function generateTitle(
  * 4. Return the top templates sorted by reuse score.
  */
 export function extractTemplates(prompts: Prompt[]): ExtractedTemplate[] {
-  // Filter to prompts that actually have text
-  const usable = prompts.filter((p) => p.promptText && p.promptText.trim().length > 0);
+  // Filter to prompts that actually have meaningful text (skip noise)
+  const NOISE_PREFIXES = ['[Image]', '<task-notification', '[Request interrupted'];
+  const usable = prompts.filter((p) => {
+    const text = (p.promptText ?? '').trim();
+    if (text.length < 10) return false;
+    if (NOISE_PREFIXES.some((prefix) => text.startsWith(prefix))) return false;
+    if (/^\d+$/.test(text)) return false; // just numbers
+    if (!/\s/.test(text)) return false; // single word
+    return true;
+  });
   if (usable.length === 0) return [];
 
   // Step 1 – group by category
@@ -263,6 +271,10 @@ export function extractTemplates(prompts: Prompt[]): ExtractedTemplate[] {
       // Step 3 – build template from cluster
       const clusterPrompts = cluster.map((idx) => group[idx]);
       const clusterTexts = cluster.map((idx) => group[idx].promptText!);
+
+      // Skip groups where average prompt length is too short (noise)
+      const avgLen = clusterTexts.reduce((s, t) => s + t.length, 0) / clusterTexts.length;
+      if (avgLen <= 20) continue;
 
       const pattern = generatePattern(clusterTexts);
       const title = generateTitle(pattern, category);

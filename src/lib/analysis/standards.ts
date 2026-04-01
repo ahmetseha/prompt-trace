@@ -155,10 +155,13 @@ export function inferStandards(
     const worst = bottomByScore(catPrompts, 3);
 
     const recommendedStructure = extractStructure(best);
+    // Skip short/noise prompts when picking best examples
     const examples = best
       .map((p) => (p.promptText ?? '').slice(0, 300))
-      .filter((t) => t.length > 0);
-    const notes = extractAntiPatterns(worst);
+      .filter((t) => t.length >= 20);
+    // Only include meaningful anti-patterns from prompts with actual content
+    const meaningfulWorst = worst.filter((p) => (p.promptText ?? '').trim().length >= 20);
+    const notes = meaningfulWorst.length > 0 ? extractAntiPatterns(meaningfulWorst) : [];
 
     const avgSuccess =
       best.reduce((s, p) => s + (p.successScore ?? 0), 0) / (best.length || 1);

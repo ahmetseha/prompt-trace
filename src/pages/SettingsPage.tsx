@@ -193,7 +193,7 @@ export function SettingsPage() {
 
       <Section title="About" description="PromptTrace application info.">
         <FieldRow label="Version">
-          <span className="text-sm text-zinc-400">0.3.0</span>
+          <span className="text-sm text-zinc-400">1.0.1</span>
         </FieldRow>
 
         <FieldRow label="Classification">
@@ -201,7 +201,7 @@ export function SettingsPage() {
         </FieldRow>
 
         <FieldRow label="Supported Sources">
-          <span className="text-sm text-zinc-400">Claude Code, Cursor, Codex CLI</span>
+          <span className="text-sm text-zinc-400">13 adapters (Claude Code, Cursor, Codex CLI, Gemini CLI, Copilot CLI, Goose, VS Code, Windsurf, Zed, Kiro, OpenCode, Antigravity, Command Code)</span>
         </FieldRow>
 
         <FieldRow label="License">

@@ -72,7 +72,8 @@ function exportPackMarkdown(pack: PromptPack, steps: PackStep[]): string {
 
 function PackCard({ pack }: { pack: PromptPack }) {
   const [copied, setCopied] = useState(false);
-  const steps = parseSteps(pack);
+  const [showAllSteps, setShowAllSteps] = useState(false);
+  const steps = parseSteps(pack).filter((s) => s.normalizedPrompt.length >= 10);
   const scoreValue = pack.score ?? 0;
 
   const handleExport = () => {
@@ -109,7 +110,7 @@ function PackCard({ pack }: { pack: PromptPack }) {
 
       {/* Description */}
       {pack.description && (
-        <p className="mt-3 text-xs leading-relaxed text-zinc-400">
+        <p className="mt-3 text-xs leading-relaxed text-zinc-400 line-clamp-2">
           {pack.description}
         </p>
       )}
@@ -138,13 +139,18 @@ function PackCard({ pack }: { pack: PromptPack }) {
       </div>
 
       {/* Steps */}
-      {steps.length > 0 && (
+      {steps.length > 0 && (() => {
+        const STEP_LIMIT = 5;
+        const shouldCollapseSteps = steps.length > 8 && !showAllSteps;
+        const visibleSteps = shouldCollapseSteps ? steps.slice(0, STEP_LIMIT) : steps;
+        const hiddenStepCount = steps.length - STEP_LIMIT;
+        return (
         <div className="mt-4 space-y-2">
           <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">
             Steps
           </span>
           <ol className="space-y-2">
-            {steps.map((step) => (
+            {visibleSteps.map((step) => (
               <li
                 key={step.order}
                 className="rounded-lg border border-zinc-800/50 bg-zinc-800/30 px-3 py-2.5"
@@ -163,15 +169,24 @@ function PackCard({ pack }: { pack: PromptPack }) {
                   </span>
                 </div>
                 <div className="rounded-md bg-zinc-950 px-2.5 py-2 overflow-x-auto">
-                  <pre className="text-xs font-mono text-zinc-400 whitespace-pre-wrap break-words leading-relaxed">
+                  <pre className="text-xs font-mono text-zinc-400 whitespace-pre-wrap break-words leading-relaxed line-clamp-2">
                     {step.normalizedPrompt}
                   </pre>
                 </div>
               </li>
             ))}
           </ol>
+          {shouldCollapseSteps && (
+            <button
+              onClick={() => setShowAllSteps(true)}
+              className="w-full rounded-lg bg-zinc-800/50 py-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+            >
+              Show {hiddenStepCount} more steps
+            </button>
+          )}
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
@@ -192,7 +207,15 @@ export function PacksPage() {
 
   if (isLoading) return <PageLoader />;
 
-  const packs = [...(allPacks || [])].sort((a: any, b: any) => {
+  const packs = [...(allPacks || [])]
+    .filter((p: any) => {
+      const score = p.score ?? 0;
+      const steps = parseSteps(p);
+      if (score < 10) return false;
+      if (steps.length < 3) return false;
+      return true;
+    })
+    .sort((a: any, b: any) => {
     switch (sortBy) {
       case "score":
         return (b.score ?? 0) - (a.score ?? 0);

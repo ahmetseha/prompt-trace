@@ -36,7 +36,7 @@ export function SourcesPage() {
           <p className="mt-1 text-sm text-zinc-500">
             {sources.length > 0
               ? `${sources.length} source${sources.length !== 1 ? 's' : ''} connected.`
-              : 'No sources scanned yet. Discover available AI tools below.'}
+              : 'No sources scanned yet. Run npx prompttrace to scan your AI tools.'}
           </p>
         </div>
         {sources.length > 0 && (

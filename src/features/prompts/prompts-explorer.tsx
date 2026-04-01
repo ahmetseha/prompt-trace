@@ -158,15 +158,15 @@ export function PromptsExplorer({
         projects={projects.map((p) => ({ id: p.id, name: p.name }))}
       />
 
-      <div className="flex items-center gap-4 text-sm">
+      <div className="flex items-center gap-4 text-sm tabular-nums">
         <span className="text-zinc-500">
-          {filtered.length} {filtered.length === 1 ? "prompt" : "prompts"}
+          <span className="font-medium">{filtered.length}</span> {filtered.length === 1 ? "prompt" : "prompts"}
         </span>
         {weakCount > 0 && (
-          <span className="text-red-400">{weakCount} weak</span>
+          <span className="text-red-400"><span className="font-medium">{weakCount}</span> weak</span>
         )}
         {reusableCount > 0 && (
-          <span className="text-emerald-400">{reusableCount} reusable</span>
+          <span className="text-emerald-400"><span className="font-medium">{reusableCount}</span> reusable</span>
         )}
       </div>
 

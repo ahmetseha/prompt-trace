@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Prompt, PromptCategory } from "@/lib/types";
 import { CategoryBadge } from "@/components/category-badge";
 import { truncate } from "@/lib/utils";
@@ -8,6 +9,7 @@ interface SessionTimelineProps {
 }
 
 export function SessionTimeline({ prompts }: SessionTimelineProps) {
+  const [showAll, setShowAll] = useState(false);
   if (prompts.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-zinc-500">
@@ -20,13 +22,18 @@ export function SessionTimeline({ prompts }: SessionTimelineProps) {
     (a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0)
   );
 
+  const COLLAPSED_LIMIT = 15;
+  const shouldCollapse = sorted.length > 20 && !showAll;
+  const visible = shouldCollapse ? sorted.slice(0, COLLAPSED_LIMIT) : sorted;
+  const hiddenCount = sorted.length - COLLAPSED_LIMIT;
+
   return (
     <div className="relative pl-6">
       {/* Vertical line */}
       <div className="absolute left-[9px] top-2 bottom-2 w-px bg-zinc-700" />
 
       <div className="space-y-6">
-        {sorted.map((prompt, idx) => (
+        {visible.map((prompt, idx) => (
           <div key={prompt.id} className="relative flex gap-4">
             {/* Dot */}
             <div className="absolute -left-6 top-1.5 flex h-[18px] w-[18px] items-center justify-center">
@@ -51,7 +58,7 @@ export function SessionTimeline({ prompts }: SessionTimelineProps) {
                   </span>
                 )}
               </div>
-              <p className="text-sm leading-relaxed text-zinc-300">
+              <p className="text-sm leading-relaxed text-zinc-300 line-clamp-2">
                 {prompt.promptText
                   ? truncate(prompt.promptText, 180)
                   : "No prompt text"}
@@ -60,6 +67,15 @@ export function SessionTimeline({ prompts }: SessionTimelineProps) {
           </div>
         ))}
       </div>
+
+      {shouldCollapse && (
+        <button
+          onClick={() => setShowAll(true)}
+          className="mt-4 w-full rounded-lg bg-zinc-800/50 py-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+        >
+          Show {hiddenCount} more
+        </button>
+      )}
     </div>
   );
 }

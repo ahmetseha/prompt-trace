@@ -122,7 +122,7 @@ export function DiscoverSources({ hasExistingSources }: { hasExistingSources: bo
         </div>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 max-h-[28rem] overflow-y-auto">
         {available.map((src) => {
           const Icon = iconMap[src.adapterId] || Terminal;
           return (
@@ -132,7 +132,7 @@ export function DiscoverSources({ hasExistingSources }: { hasExistingSources: bo
                   <Icon className="h-4 w-4 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-zinc-200">{src.name}</p>
+                  <p className="text-sm font-medium text-zinc-200 truncate">{src.name}</p>
                   {results[src.adapterId] && (
                     <p className="text-[11px] text-emerald-400">{results[src.adapterId]}</p>
                   )}
@@ -159,7 +159,7 @@ export function DiscoverSources({ hasExistingSources }: { hasExistingSources: bo
                   <Icon className="h-4 w-4 text-zinc-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-zinc-400">{src.name}</p>
+                  <p className="text-sm text-zinc-400 truncate">{src.name}</p>
                   <p className="text-[11px] text-zinc-600">Not installed</p>
                 </div>
               </div>

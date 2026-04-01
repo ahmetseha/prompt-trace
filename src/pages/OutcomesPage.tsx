@@ -1,5 +1,5 @@
 import { PageLoader } from '@/components/page-loader';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { CategoryBadge } from '@/components/category-badge';
@@ -54,6 +54,12 @@ function SectionCard({
   items: PromptWithOutcome[];
   emptyText: string;
 }) {
+  const [showAll, setShowAll] = useState(false);
+  const COLLAPSED_LIMIT = 5;
+  const shouldCollapse = items.length > COLLAPSED_LIMIT && !showAll;
+  const visible = shouldCollapse ? items.slice(0, COLLAPSED_LIMIT) : items;
+  const hiddenCount = items.length - COLLAPSED_LIMIT;
+
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
       <div className="flex items-center gap-2 mb-1">
@@ -66,7 +72,7 @@ function SectionCard({
         <p className="text-xs text-zinc-600 py-4 text-center">{emptyText}</p>
       ) : (
         <div className="space-y-2">
-          {items.map(({ prompt, outcome }) => (
+          {visible.map(({ prompt, outcome }) => (
             <Link
               key={prompt.id}
               to={`/dashboard/prompts/${prompt.id}`}
@@ -111,11 +117,19 @@ function SectionCard({
                   </>
                 )}
               </div>
-              <p className="mt-1.5 text-[11px] text-zinc-500 italic">
+              <p className="mt-1.5 text-[11px] text-zinc-500 italic line-clamp-1">
                 {outcome.summary}
               </p>
             </Link>
           ))}
+          {shouldCollapse && (
+            <button
+              onClick={() => setShowAll(true)}
+              className="w-full rounded-lg bg-zinc-800/50 py-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+            >
+              Show {hiddenCount} more
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -137,7 +151,9 @@ export function OutcomesPage() {
       return { effective: [], weakRepeated: [], quickAction: [], longChain: [] };
     }
 
-    const all = computeOutcomes(prompts);
+    // Filter out noise prompts (< 15 chars) before analysis
+    const meaningful = prompts.filter((p) => (p.promptText ?? '').length >= 15);
+    const all = computeOutcomes(meaningful);
 
     // Top Effective Patterns: high continuation + low abandonment
     const effective = all
@@ -151,7 +167,7 @@ export function OutcomesPage() {
           b.outcome.sessionContinuationScore -
           a.outcome.sessionContinuationScore,
       )
-      .slice(0, 10);
+      .slice(0, 8);
 
     // Most Repeated Weak Patterns: repeated later + high abandonment risk
     const weakRepeated = all
@@ -160,7 +176,7 @@ export function OutcomesPage() {
           outcome.repeatedLater && outcome.abandonmentRisk >= 40,
       )
       .sort((a, b) => b.outcome.abandonmentRisk - a.outcome.abandonmentRisk)
-      .slice(0, 10);
+      .slice(0, 8);
 
     // Quick Action Prompts: file changes with low follow-up
     const quickAction = all
@@ -169,13 +185,13 @@ export function OutcomesPage() {
           outcome.fileChangeCount > 0 && outcome.followUpCount <= 2,
       )
       .sort((a, b) => b.outcome.fileChangeCount - a.outcome.fileChangeCount)
-      .slice(0, 10);
+      .slice(0, 8);
 
     // Long Chain Prompts: high follow-up count
     const longChain = all
       .filter(({ outcome }) => outcome.followUpCount >= 4)
       .sort((a, b) => b.outcome.followUpCount - a.outcome.followUpCount)
-      .slice(0, 10);
+      .slice(0, 8);
 
     return { effective, weakRepeated, quickAction, longChain };
   }, [prompts]);
@@ -237,28 +253,28 @@ export function OutcomesPage() {
           icon={BarChart3}
           description="Prompts with high session continuation and file changes, grouped by impact"
           items={sections.effective}
-          emptyText="No effective patterns detected yet."
+          emptyText="No patterns detected yet"
         />
         <SectionCard
           title="Most Repeated Weak Patterns"
           icon={Repeat2}
           description="Prompts that keep getting repeated with low success - candidates for improvement"
           items={sections.weakRepeated}
-          emptyText="No repeated weak patterns found."
+          emptyText="No patterns detected yet"
         />
         <SectionCard
           title="Quick Action Prompts"
           icon={Zap}
           description="Prompts that led to file changes immediately with minimal follow-up"
           items={sections.quickAction}
-          emptyText="No quick action prompts found."
+          emptyText="No patterns detected yet"
         />
         <SectionCard
           title="Long Chain Prompts"
           icon={Link2}
           description="Prompts that triggered many follow-up prompts in the same session"
           items={sections.longChain}
-          emptyText="No long chain prompts detected."
+          emptyText="No patterns detected yet"
         />
       </div>
     </div>

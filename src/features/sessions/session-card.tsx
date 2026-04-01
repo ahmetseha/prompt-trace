@@ -68,14 +68,19 @@ export function SessionCard({ session, project }: SessionCardProps) {
 
         {modelNames.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
-            {modelNames.map((model) => (
+            {modelNames.slice(0, 3).map((model) => (
               <span
                 key={model}
-                className="rounded-md bg-zinc-800 px-2 py-0.5 text-[11px] text-zinc-400"
+                className="truncate max-w-[120px] rounded-md bg-zinc-800 px-2 py-0.5 text-[11px] text-zinc-400"
               >
                 {model}
               </span>
             ))}
+            {modelNames.length > 3 && (
+              <span className="rounded-md bg-zinc-800 px-2 py-0.5 text-[11px] text-zinc-400">
+                +{modelNames.length - 3} more
+              </span>
+            )}
           </div>
         )}
       </div>

@@ -80,20 +80,21 @@ export function DashboardPage() {
   const oppTrendValue = opportunities?.trendValue ?? trendDiff;
   const oppTrendLabel = opportunities?.trendLabel ?? 'prompts/day vs last week';
 
-  // Top reusable templates - sorted by score desc
+  // Top reusable templates - sorted by score desc, skip short patterns
   const topTemplates = [...allTemplates]
+    .filter((t) => (t.normalizedPattern ?? '').length >= 15)
     .sort((a, b) => (b.reuseScore ?? 0) - (a.reuseScore ?? 0))
     .slice(0, 5);
 
-  // Weakest prompts needing improvement
+  // Weakest prompts needing improvement - skip noise
   const weakestPrompts = [...allPrompts]
-    .filter((p) => p.successScore != null)
+    .filter((p) => p.successScore != null && (p.promptText ?? '').length >= 15)
     .sort((a, b) => (a.successScore ?? 100) - (b.successScore ?? 100))
     .slice(0, 5);
 
-  // Recent high-value prompts
+  // Recent high-value prompts - skip noise
   const highValuePrompts = [...allPrompts]
-    .filter((p) => (p.reuseScore ?? 0) > 50 || (p.successScore ?? 0) > 60)
+    .filter((p) => (p.promptText ?? '').length >= 15 && ((p.reuseScore ?? 0) > 50 || (p.successScore ?? 0) > 60))
     .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
     .slice(0, 6);
 
@@ -103,37 +104,37 @@ export function DashboardPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
         <StatsCard
           title="Total Prompts"
-          value={stats.totalPrompts}
+          value={stats.totalPrompts || "--"}
           icon={MessageSquare}
           trend={{ value: 12, label: "vs last week" }}
         />
         <StatsCard
           title="Sessions"
-          value={stats.totalSessions}
+          value={stats.totalSessions || "--"}
           icon={Clock}
           description="Across all sources"
         />
         <StatsCard
           title="Projects"
-          value={stats.totalProjects}
+          value={stats.totalProjects || "--"}
           icon={FolderOpen}
           description="Active projects tracked"
         />
         <StatsCard
           title="Sources"
-          value={stats.totalSources}
+          value={stats.totalSources || "--"}
           icon={Plug}
           description="Connected AI tools"
         />
         <StatsCard
           title="Avg Reuse Score"
-          value={`${Math.round(stats.avgReuseScore)}%`}
+          value={stats.avgReuseScore ? `${Math.round(stats.avgReuseScore)}%` : "--"}
           icon={Target}
           trend={{ value: 5, label: "improving" }}
         />
         <StatsCard
           title="Success Rate"
-          value={`${Math.round(stats.avgSuccessScore)}%`}
+          value={stats.avgSuccessScore ? `${Math.round(stats.avgSuccessScore)}%` : "--"}
           icon={TrendingUp}
           description="Estimated from heuristics"
         />

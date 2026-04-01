@@ -66,6 +66,9 @@ function standardToMarkdown(s: Standard): string {
 
 function StandardCard({ standard }: { standard: Standard }) {
   const [copied, setCopied] = useState(false);
+  const [structureExpanded, setStructureExpanded] = useState(false);
+  const [examplesExpanded, setExamplesExpanded] = useState(false);
+  const [notesExpanded, setNotesExpanded] = useState(false);
   const examples: string[] = parseJson(standard.examplesJson, []);
   const notes: string[] = parseJson(standard.notesJson, []);
 
@@ -115,20 +118,34 @@ function StandardCard({ standard }: { standard: Standard }) {
           <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
             Recommended Structure
           </h3>
-          <pre className="rounded-xl bg-zinc-950 p-4 text-xs font-mono leading-relaxed text-zinc-300 overflow-x-auto whitespace-pre-wrap border border-zinc-800">
-            {standard.recommendedStructure}
-          </pre>
+          <div className={`relative ${!structureExpanded ? "max-h-32 overflow-hidden" : ""}`}>
+            <pre className="rounded-xl bg-zinc-950 p-4 text-xs font-mono leading-relaxed text-zinc-300 overflow-x-auto whitespace-pre-wrap border border-zinc-800">
+              {standard.recommendedStructure}
+            </pre>
+            {!structureExpanded && (
+              <button
+                onClick={() => setStructureExpanded(true)}
+                className="absolute inset-x-0 bottom-0 flex items-center justify-center bg-gradient-to-t from-zinc-950 to-transparent pt-8 pb-2 text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                Expand
+              </button>
+            )}
+          </div>
         </div>
       )}
 
       {/* Best Examples */}
-      {examples.length > 0 && (
+      {examples.length > 0 && (() => {
+        const EXAMPLE_LIMIT = 3;
+        const shouldCollapseExamples = examples.length > 5 && !examplesExpanded;
+        const visibleExamples = shouldCollapseExamples ? examples.slice(0, EXAMPLE_LIMIT) : examples;
+        return (
         <div className="mt-4">
           <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
             Best Examples
           </h3>
           <div className="space-y-2">
-            {examples.map((ex, i) => (
+            {visibleExamples.map((ex, i) => (
               <div
                 key={i}
                 className="rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-300 leading-relaxed"
@@ -136,19 +153,32 @@ function StandardCard({ standard }: { standard: Standard }) {
                 {ex}
               </div>
             ))}
+            {shouldCollapseExamples && (
+              <button
+                onClick={() => setExamplesExpanded(true)}
+                className="w-full rounded-lg bg-zinc-800/50 py-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+              >
+                Show {examples.length - EXAMPLE_LIMIT} more
+              </button>
+            )}
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Anti-Patterns */}
-      {notes.length > 0 && (
+      {notes.length > 0 && (() => {
+        const NOTE_LIMIT = 3;
+        const shouldCollapseNotes = notes.length > 5 && !notesExpanded;
+        const visibleNotes = shouldCollapseNotes ? notes.slice(0, NOTE_LIMIT) : notes;
+        return (
         <div className="mt-4">
           <h3 className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
             <AlertTriangle className="h-3 w-3 text-orange-400" />
             Anti-Patterns
           </h3>
           <ul className="space-y-1.5">
-            {notes.map((note, i) => (
+            {visibleNotes.map((note, i) => (
               <li
                 key={i}
                 className="flex items-start gap-2 text-xs leading-relaxed text-orange-400/80"
@@ -158,8 +188,17 @@ function StandardCard({ standard }: { standard: Standard }) {
               </li>
             ))}
           </ul>
+          {shouldCollapseNotes && (
+            <button
+              onClick={() => setNotesExpanded(true)}
+              className="mt-2 w-full rounded-lg bg-zinc-800/50 py-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+            >
+              Show {notes.length - NOTE_LIMIT} more
+            </button>
+          )}
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
@@ -176,7 +215,13 @@ export function StandardsPage() {
 
   if (isLoading) return <PageLoader />;
 
-  const list = Array.isArray(standards) ? standards : [];
+  const NOISE_TITLE_PATTERNS = ['unknown', 'general', '[placeholder]', '[string]'];
+  const list = (Array.isArray(standards) ? standards : []).filter((s) => {
+    if (!s.recommendedStructure || s.recommendedStructure.trim().length === 0) return false;
+    const titleLower = (s.title ?? '').toLowerCase();
+    if (NOISE_TITLE_PATTERNS.some((p) => titleLower === p || titleLower === `${p} prompt standard`)) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6">

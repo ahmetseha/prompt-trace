@@ -167,7 +167,7 @@ export function CommandPalette() {
                   className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-300 aria-selected:bg-zinc-800"
                 >
                   <Clock className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
-                  {session.title}
+                  <span className="truncate">{session.title}</span>
                 </Command.Item>
               ))}
             </Command.Group>
@@ -188,7 +188,7 @@ export function CommandPalette() {
                   className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-300 aria-selected:bg-zinc-800"
                 >
                   <FolderOpen className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
-                  {project.name}
+                  <span className="truncate">{project.name}</span>
                 </Command.Item>
               ))}
             </Command.Group>

@@ -33,7 +33,7 @@ export function PromptListItem({
       <div className="flex items-start justify-between gap-4">
         {/* Main content */}
         <div className="min-w-0 flex-1 space-y-2">
-          <p className="text-sm leading-relaxed text-zinc-200 group-hover:text-white">
+          <p className="text-sm leading-relaxed text-zinc-200 group-hover:text-white line-clamp-2">
             {preview}
           </p>
 
@@ -64,7 +64,7 @@ export function PromptListItem({
             )}
 
             {prompt.model && (
-              <span className="rounded-md bg-zinc-800 px-1.5 py-0.5 text-zinc-400">
+              <span className="truncate max-w-[120px] rounded-md bg-zinc-800 px-1.5 py-0.5 text-zinc-400">
                 {prompt.model}
               </span>
             )}

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { CategoryBadge } from "@/components/category-badge";
 import type { TemplateCandidate } from "@/lib/types";
@@ -8,6 +9,7 @@ interface TemplateCardProps {
 }
 
 export function TemplateCard({ template, className }: TemplateCardProps) {
+  const [patternExpanded, setPatternExpanded] = useState(false);
   const sourcePromptIds: string[] = template.sourcePromptIdsJson
     ? (() => {
         try {
@@ -35,16 +37,24 @@ export function TemplateCard({ template, className }: TemplateCardProps) {
 
       {/* Normalized pattern */}
       {template.normalizedPattern && (
-        <div className="mt-3 rounded-lg bg-zinc-950 px-3 py-2.5 overflow-x-auto">
+        <div className={cn("mt-3 rounded-lg bg-zinc-950 px-3 py-2.5 overflow-x-auto relative", !patternExpanded && "max-h-24 overflow-hidden")}>
           <pre className="text-xs font-mono text-zinc-400 whitespace-pre-wrap break-words leading-relaxed">
             {template.normalizedPattern}
           </pre>
+          {!patternExpanded && (
+            <button
+              onClick={() => setPatternExpanded(true)}
+              className="absolute inset-x-0 bottom-0 flex items-center justify-center bg-gradient-to-t from-zinc-950 to-transparent pt-6 pb-1 text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              Expand
+            </button>
+          )}
         </div>
       )}
 
       {/* Description */}
       {template.description && (
-        <p className="mt-3 text-xs leading-relaxed text-zinc-400">
+        <p className="mt-3 text-xs leading-relaxed text-zinc-400 line-clamp-2">
           {template.description}
         </p>
       )}

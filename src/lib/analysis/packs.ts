@@ -105,8 +105,14 @@ function extractSessionSequences(
     const sorted = [...sessionPrompts].sort(
       (a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0)
     );
-    const categories = sorted.map((p) => p.category ?? "unknown");
-    result.push({ sessionId, categories, prompts: sorted });
+    // Skip noise: short "general" prompts that are likely meaningless
+    const meaningful = sorted.filter((p) => {
+      if (p.category === "general" && (p.promptText ?? "").trim().length < 15) return false;
+      return true;
+    });
+    if (meaningful.length === 0) continue;
+    const categories = meaningful.map((p) => p.category ?? "unknown");
+    result.push({ sessionId, categories, prompts: meaningful });
   }
   return result;
 }
@@ -334,7 +340,7 @@ export function inferPacks(
         intent: example?.intent ?? "instruct",
         examplePromptId: example?.id,
       };
-    });
+    }).filter((step) => step.normalizedPrompt.length >= 10);
 
     const score = Math.min(
       100,

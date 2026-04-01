@@ -144,7 +144,7 @@ export function ProjectDetailPage() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
           <h2 className="text-sm font-medium text-zinc-300">Category Breakdown</h2>
           <div className="mt-3 space-y-2">
-            {categoryBreakdown.map(({ category, count }) => {
+            {categoryBreakdown.slice(0, 8).map(({ category, count }) => {
               const pct = projectPrompts.length
                 ? Math.round((count / projectPrompts.length) * 100)
                 : 0;
@@ -163,6 +163,11 @@ export function ProjectDetailPage() {
                 </div>
               );
             })}
+            {categoryBreakdown.length > 8 && (
+              <p className="text-[11px] text-zinc-600 pt-1">
+                and {categoryBreakdown.length - 8} more categories
+              </p>
+            )}
           </div>
         </div>
 
@@ -206,7 +211,7 @@ export function ProjectDetailPage() {
               >
                 {sourceType && <SourceIcon type={sourceType} className="mt-0.5" />}
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-zinc-300">
+                  <p className="text-xs text-zinc-300 line-clamp-1">
                     {truncate(prompt.promptText ?? '\u2014', 120)}
                   </p>
                   <div className="mt-1 flex items-center gap-2">

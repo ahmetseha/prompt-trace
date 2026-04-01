@@ -142,21 +142,29 @@ export function TemplatesPage() {
 
   if (isLoading) return <PageLoader />;
 
-  const templates = [...(allTemplates || [])].sort((a: any, b: any) => {
-    switch (sortBy) {
-      case 'score':
-        return (b.reuseScore ?? 0) - (a.reuseScore ?? 0);
-      case 'used': {
-        const aCount = getSourcePromptIds(a).length;
-        const bCount = getSourcePromptIds(b).length;
-        return bCount - aCount;
+  const templates = [...(allTemplates || [])]
+    .filter((t: any) => {
+      // Hide templates with no reuse score, empty/nonsensical titles, or very short patterns
+      if ((t.reuseScore ?? 0) === 0) return false;
+      if (!t.title || t.title.trim().length === 0) return false;
+      if ((t.normalizedPattern ?? '').length < 15) return false;
+      return true;
+    })
+    .sort((a: any, b: any) => {
+      switch (sortBy) {
+        case 'score':
+          return (b.reuseScore ?? 0) - (a.reuseScore ?? 0);
+        case 'used': {
+          const aCount = getSourcePromptIds(a).length;
+          const bCount = getSourcePromptIds(b).length;
+          return bCount - aCount;
+        }
+        case 'newest':
+          return (b.createdAt ?? 0) - (a.createdAt ?? 0);
+        default:
+          return 0;
       }
-      case 'newest':
-        return (b.createdAt ?? 0) - (a.createdAt ?? 0);
-      default:
-        return 0;
-    }
-  });
+    });
 
   return (
     <div className="space-y-6">
@@ -200,8 +208,8 @@ export function TemplatesPage() {
       {templates.length === 0 ? (
         <div className="rounded-xl border border-dashed border-zinc-800 py-16 text-center">
           <Sparkles className="mx-auto h-8 w-8 text-zinc-700 mb-3" />
-          <p className="text-sm text-zinc-500">No templates detected yet.</p>
-          <p className="mt-1 text-xs text-zinc-600">Templates are extracted after scanning your prompt history. Use the Sync button to scan.</p>
+          <p className="text-sm text-zinc-500">No meaningful templates yet.</p>
+          <p className="mt-1 text-xs text-zinc-600">Templates are extracted after scanning your prompt history. Keep using AI tools and sync to build reusable patterns.</p>
         </div>
       ) : (
         <div className="space-y-4">

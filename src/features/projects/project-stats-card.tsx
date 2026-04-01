@@ -84,7 +84,7 @@ export function ProjectStatsCard({ project, className }: ProjectStatsCardProps) 
             <CategoryBadge category={project.mostUsedCategory} />
           </div>
           <div className="flex items-end gap-0.5 h-8">
-            {project.categoryDistribution.slice(0, 8).map((d) => (
+            {project.categoryDistribution.slice(0, 5).map((d) => (
               <div
                 key={d.category}
                 className="flex-1 rounded-sm transition-all"
@@ -97,6 +97,11 @@ export function ProjectStatsCard({ project, className }: ProjectStatsCardProps) 
               />
             ))}
           </div>
+          {project.categoryDistribution.length > 5 && (
+            <p className="mt-1 text-[10px] text-zinc-600">
+              and {project.categoryDistribution.length - 5} more
+            </p>
+          )}
         </div>
 
         {/* Footer */}
