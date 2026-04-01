@@ -39,6 +39,7 @@ export function SourceChart({ data }: SourceChartProps) {
               ))}
             </Pie>
             <Tooltip
+              cursor={false}
               contentStyle={{
                 backgroundColor: "#18181b",
                 border: "1px solid #27272a",

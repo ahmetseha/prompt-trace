@@ -75,9 +75,9 @@ export function PromptListItem({
 
         {/* Right side: scores */}
         <div className="flex shrink-0 flex-col items-end gap-2">
-          {/* Reuse score */}
+          {/* Reuse score - how template-worthy this prompt is */}
           {prompt.reuseScore != null && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" title="Reuse Score: How reusable this prompt is as a template. Higher = more generic and reusable.">
               <span className="text-[11px] text-zinc-500">Reuse</span>
               <div className="h-1.5 w-16 overflow-hidden rounded-full bg-zinc-800">
                 <div
@@ -91,9 +91,9 @@ export function PromptListItem({
             </div>
           )}
 
-          {/* Success score */}
+          {/* Success score - estimated effectiveness */}
           {prompt.successScore != null && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" title="Success Score: Estimated prompt effectiveness based on response quality, file changes, and clarity.">
               <span className="text-[11px] text-zinc-500">Success</span>
               <div className="h-1.5 w-16 overflow-hidden rounded-full bg-zinc-800">
                 <div

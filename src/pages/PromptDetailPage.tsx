@@ -1,17 +1,57 @@
 import { PageLoader } from "@/components/page-loader";
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft,
+  ChevronDown,
   Clock,
   Coins,
   FileText,
   Hash,
+  Info,
   Layers,
   MessageSquare,
   Tag,
   Zap,
 } from 'lucide-react';
+
+function PromptTextBlock({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = text.length > 300;
+
+  return (
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+          Prompt
+        </h2>
+        {isLong && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            {expanded ? "Collapse" : "Expand"}
+            <ChevronDown className={`h-3 w-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
+          </button>
+        )}
+      </div>
+      <div className={`overflow-hidden transition-all ${isLong && !expanded ? "max-h-32" : ""}`}>
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-200">
+          {text}
+        </p>
+      </div>
+      {isLong && !expanded && (
+        <button
+          onClick={() => setExpanded(true)}
+          className="mt-2 w-full rounded-lg bg-zinc-800/50 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+        >
+          Show full prompt ({text.length} chars)
+        </button>
+      )}
+    </div>
+  );
+}
 import { CategoryBadge } from '@/components/category-badge';
 import { SourceIcon } from '@/components/source-icon';
 import { formatDate, formatRelativeDate } from '@/lib/utils';
@@ -84,15 +124,8 @@ export function PromptDetailPage() {
         Back to prompts
       </Link>
 
-      {/* Prompt text */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-        <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
-          Prompt
-        </h2>
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-200">
-          {prompt.promptText}
-        </p>
-      </div>
+      {/* Prompt text - collapsible if long */}
+      <PromptTextBlock text={prompt.promptText ?? ""} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left column: metadata + scores */}
@@ -207,7 +240,10 @@ export function PromptDetailPage() {
               {/* Success score */}
               <div>
                 <div className="mb-1.5 flex items-center justify-between text-sm">
-                  <span className="text-zinc-400">Success Score</span>
+                  <span className="text-zinc-400 flex items-center gap-1" title="Estimated effectiveness based on response length, file changes, prompt clarity, and action orientation">
+                    Success Score
+                    <Info className="h-3 w-3 text-zinc-600" />
+                  </span>
                   <span className="tabular-nums text-zinc-200">
                     {Math.round(prompt.successScore ?? 0)}%
                   </span>
@@ -223,7 +259,10 @@ export function PromptDetailPage() {
               {/* Reuse score */}
               <div>
                 <div className="mb-1.5 flex items-center justify-between text-sm">
-                  <span className="text-zinc-400">Reuse Score</span>
+                  <span className="text-zinc-400 flex items-center gap-1" title="How reusable this prompt is as a template. Higher scores indicate generic, well-structured prompts that could be applied to other projects">
+                    Reuse Score
+                    <Info className="h-3 w-3 text-zinc-600" />
+                  </span>
                   <span className="tabular-nums text-zinc-200">
                     {Math.round(prompt.reuseScore ?? 0)}%
                   </span>

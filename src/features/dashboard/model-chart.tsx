@@ -36,7 +36,7 @@ export function ModelChart({ data }: ModelChartProps) {
               tick={{ fill: "#71717a", fontSize: 11 }}
               tickMargin={8}
             />
-            <Tooltip
+            <Tooltip cursor={{ fill: "transparent" }}
               contentStyle={{
                 backgroundColor: "#18181b",
                 border: "1px solid #27272a",

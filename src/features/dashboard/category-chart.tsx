@@ -40,9 +40,9 @@ export function CategoryChart({ data }: CategoryChartProps) {
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#a1a1aa", fontSize: 11 }}
-              width={90}
+              width={110}
             />
-            <Tooltip
+            <Tooltip cursor={{ fill: "transparent" }}
               contentStyle={{
                 backgroundColor: "#18181b",
                 border: "1px solid #27272a",
@@ -52,7 +52,7 @@ export function CategoryChart({ data }: CategoryChartProps) {
               labelStyle={{ color: "#a1a1aa" }}
               itemStyle={{ color: "#e4e4e7" }}
             />
-            <Bar dataKey="count" radius={[0, 4, 4, 0]} name="Prompts">
+            <Bar activeBar={false} dataKey="count" radius={[0, 4, 4, 0]} name="Prompts">
               {data.slice(0, 8).map((entry) => (
                 <Cell
                   key={entry.category}
