@@ -1,6 +1,4 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { FileText, ArrowRight } from "lucide-react";
 import type { TemplateCandidate } from "@/lib/types";
 
@@ -19,7 +17,7 @@ export function TopTemplates({ templates }: TopTemplatesProps) {
           </p>
         </div>
         <Link
-          href="/dashboard/templates"
+          to="/dashboard/templates"
           className="text-xs font-medium text-indigo-400 hover:text-indigo-300"
         >
           View all

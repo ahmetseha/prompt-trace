@@ -1,6 +1,4 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { FileText, Clock } from "lucide-react";
 import type { Prompt, PromptCategory, SourceType } from "@/lib/types";
 import { CategoryBadge } from "@/components/category-badge";
@@ -25,7 +23,7 @@ export function PromptListItem({
 
   return (
     <Link
-      href={`/dashboard/prompts/${prompt.id}`}
+      to={`/dashboard/prompts/${prompt.id}`}
       className="group block rounded-xl border border-zinc-800/50 px-5 py-4 transition-colors hover:bg-zinc-800/50"
     >
       <div className="flex items-start justify-between gap-4">

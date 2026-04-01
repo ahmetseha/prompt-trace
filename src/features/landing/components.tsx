@@ -1,8 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { Easing } from "framer-motion";
 import {
@@ -69,7 +66,7 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b border-zinc-800/50 bg-[#09090b]/90 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-        <Link href="/" className="flex items-center gap-2 text-zinc-100 font-semibold">
+        <Link to="/" className="flex items-center gap-2 text-zinc-100 font-semibold">
           <div className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-600">
             <Zap className="h-3.5 w-3.5 text-white" />
           </div>
@@ -160,13 +157,10 @@ export function Hero() {
               <div className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
               <span className="ml-3 text-[10px] text-zinc-600">localhost:3001/dashboard</span>
             </div>
-            <Image
+            <img
               src="/dashboard-preview.png"
               alt="PromptTrace Dashboard"
-              width={1920}
-              height={1080}
               className="rounded-lg"
-              priority
             />
           </div>
           {/* Fade to black at bottom */}

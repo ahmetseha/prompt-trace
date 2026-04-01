@@ -1,5 +1,3 @@
-"use client";
-
 import type { Prompt, PromptCategory } from "@/lib/types";
 import { CategoryBadge } from "@/components/category-badge";
 import { truncate } from "@/lib/utils";

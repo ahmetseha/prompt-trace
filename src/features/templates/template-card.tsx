@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/lib/utils";
 import { CategoryBadge } from "@/components/category-badge";
 import type { TemplateCandidate } from "@/lib/types";

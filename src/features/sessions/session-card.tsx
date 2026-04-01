@@ -1,6 +1,4 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import type { Session, Project, SourceType } from "@/lib/types";
 import { SourceIcon } from "@/components/source-icon";
 import { formatDate } from "@/lib/utils";
@@ -37,7 +35,7 @@ export function SessionCard({ session, project }: SessionCardProps) {
   const modelNames = Object.keys(models);
 
   return (
-    <Link href={`/dashboard/sessions/${session.id}`}>
+    <Link to={`/dashboard/sessions/${session.id}`}>
       <div className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-5 transition-colors hover:border-zinc-700 hover:bg-zinc-800/60">
         <div className="mb-3 flex items-start justify-between gap-3">
           <h3 className="min-w-0 truncate text-sm font-semibold text-zinc-100 group-hover:text-white">

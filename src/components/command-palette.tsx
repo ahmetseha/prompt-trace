@@ -1,7 +1,5 @@
-"use client";
-
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { Command } from "cmdk";
 import {
   MessageSquare,
@@ -20,7 +18,7 @@ import { truncate } from "@/lib/utils";
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
+  const routerNavigate = useNavigate();
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -42,9 +40,9 @@ export function CommandPalette() {
   const navigate = useCallback(
     (path: string) => {
       setOpen(false);
-      router.push(path);
+      routerNavigate(path);
     },
-    [router]
+    [routerNavigate]
   );
 
   if (!open) return null;

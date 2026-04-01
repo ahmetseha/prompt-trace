@@ -1,6 +1,5 @@
-"use client";
-
 import { useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 /**
  * Background auto-scan component.
@@ -9,6 +8,7 @@ import { useEffect, useRef } from "react";
  */
 export function AutoScan() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     async function scan() {
@@ -20,6 +20,7 @@ export function AutoScan() {
             body: JSON.stringify({ sourceType: src }),
           });
         }
+        queryClient.invalidateQueries();
       } catch {
         // Background scan failure is fine
       }

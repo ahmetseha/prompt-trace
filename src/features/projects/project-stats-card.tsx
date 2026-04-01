@@ -1,6 +1,4 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { FolderOpen, MessageSquare, Clock, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/lib/utils";
@@ -28,7 +26,7 @@ export function ProjectStatsCard({ project, className }: ProjectStatsCardProps) 
   const maxCount = Math.max(...project.categoryDistribution.map((d) => d.count), 1);
 
   return (
-    <Link href={`/dashboard/projects/${project.id}`} className="block">
+    <Link to={`/dashboard/projects/${project.id}`} className="block">
       <div
         className={cn(
           "rounded-2xl border border-zinc-800 bg-zinc-900 p-5 transition-colors hover:border-zinc-700 hover:bg-zinc-900/80",

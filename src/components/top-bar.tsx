@@ -1,7 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useLocation } from "react-router-dom";
 import { RefreshCw, Share2, Check, Loader2 } from "lucide-react";
 
 const pageTitles: Record<string, { title: string; description: string }> = {
@@ -36,8 +34,7 @@ const pageTitles: Record<string, { title: string; description: string }> = {
 };
 
 export function TopBar() {
-  const pathname = usePathname();
-  const router = useRouter();
+  const { pathname } = useLocation();
   const [refreshing, setRefreshing] = useState(false);
   const [shared, setShared] = useState(false);
 
@@ -59,7 +56,7 @@ export function TopBar() {
           body: JSON.stringify({ sourceType: src }),
         });
       }
-      router.refresh();
+      window.location.reload();
     } catch { /* ignore */ }
     setRefreshing(false);
   }

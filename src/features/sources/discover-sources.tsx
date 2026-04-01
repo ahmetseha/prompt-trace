@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { RefreshCw, Loader2, Check, Terminal, Code, Cpu } from "lucide-react";
 

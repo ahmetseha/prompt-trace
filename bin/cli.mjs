@@ -11,7 +11,6 @@ const pkgRoot = join(__dirname, "..");
 const HOME = process.env.HOME || process.env.USERPROFILE || "~";
 const APP_DIR = join(HOME, ".prompttrace");
 const DATA_DIR = join(APP_DIR, "data");
-const IS_WIN = process.platform === "win32";
 
 const args = process.argv.slice(2);
 
@@ -34,7 +33,6 @@ if (args.includes("--help") || args.includes("-h")) {
   process.exit(0);
 }
 
-// --- Port detection ---
 function findFreePort(startPort) {
   return new Promise((resolve) => {
     const srv = createServer();
@@ -43,13 +41,9 @@ function findFreePort(startPort) {
   });
 }
 
-// --- Cross-platform shell exec (handles spaces in paths) ---
-function run(cmd, cwd, stdio) {
-  execSync(cmd, { cwd, stdio, shell: true });
-}
-
 function openBrowser(url) {
   try {
+    const IS_WIN = process.platform === "win32";
     if (IS_WIN) {
       execSync(`start "" "${url}"`, { stdio: "ignore", shell: true });
     } else if (process.platform === "darwin") {
@@ -58,10 +52,6 @@ function openBrowser(url) {
       execSync(`xdg-open "${url}"`, { stdio: "ignore" });
     }
   } catch { /* ignore */ }
-}
-
-function nextBin() {
-  return JSON.stringify(join(APP_DIR, "node_modules", ".bin", "next"));
 }
 
 const requestedPort = args.includes("--port")
@@ -74,7 +64,7 @@ const noCache = args.includes("--no-cache");
 const scanOnly = args[0] === "scan";
 
 console.log("");
-console.log("  PromptTrace v0.3.0");
+console.log("  PromptTrace v0.4.0");
 console.log("  Local-first prompt intelligence for developers");
 console.log("");
 
@@ -92,73 +82,69 @@ if (needsSetup) {
   const action = installedVersion ? `Updating ${installedVersion} -> ${currentVersion}` : "Setting up";
   process.stdout.write(`  ${action}...`);
 
-  mkdirSync(APP_DIR, { recursive: true });
-  mkdirSync(DATA_DIR, { recursive: true });
-
-  const standaloneDir = join(pkgRoot, ".next", "standalone");
-  const staticDir = join(pkgRoot, ".next", "static");
-
-  if (existsSync(standaloneDir)) {
-    cpSync(standaloneDir, APP_DIR, { recursive: true, force: true });
-    const destStatic = join(APP_DIR, ".next", "static");
-    if (existsSync(staticDir)) {
-      mkdirSync(dirname(destStatic), { recursive: true });
-      cpSync(staticDir, destStatic, { recursive: true, force: true });
-    }
-  } else {
-    // Clean old artifacts
-    for (const p of ["node_modules", ".next", "package-lock.json"]) {
+  // Clean old install
+  if (existsSync(APP_DIR)) {
+    for (const p of ["node_modules", "dist", ".next", "package-lock.json"]) {
       const target = join(APP_DIR, p);
       if (existsSync(target)) rmSync(target, { recursive: true, force: true });
     }
+  }
 
-    // Copy source
-    for (const dir of ["src", "docs"]) {
-      const src = join(pkgRoot, dir);
-      if (existsSync(src)) cpSync(src, join(APP_DIR, dir), { recursive: true, force: true });
-    }
-    for (const file of ["package.json", "tsconfig.json", "next.config.ts", "postcss.config.mjs", "next-env.d.ts"]) {
-      const src = join(pkgRoot, file);
-      if (existsSync(src)) cpSync(src, join(APP_DIR, file), { force: true });
-    }
-    mkdirSync(join(APP_DIR, "public"), { recursive: true });
+  mkdirSync(APP_DIR, { recursive: true });
+  mkdirSync(DATA_DIR, { recursive: true });
 
-    console.log(" installing deps...");
-    run("npm install --no-audit --no-fund 2>&1", APP_DIR, ["ignore", "ignore", "inherit"]);
+  // Copy source files
+  for (const dir of ["src", "server", "scripts"]) {
+    const src = join(pkgRoot, dir);
+    if (existsSync(src)) cpSync(src, join(APP_DIR, dir), { recursive: true, force: true });
+  }
+  for (const file of ["package.json", "tsconfig.json", "tsconfig.server.json", "vite.config.ts", "postcss.config.mjs", "index.html"]) {
+    const src = join(pkgRoot, file);
+    if (existsSync(src)) cpSync(src, join(APP_DIR, file), { force: true });
+  }
 
+  // Copy pre-built dist if available
+  const distDir = join(pkgRoot, "dist");
+  if (existsSync(distDir)) {
+    cpSync(distDir, join(APP_DIR, "dist"), { recursive: true, force: true });
+  }
+
+  mkdirSync(join(APP_DIR, "public"), { recursive: true });
+
+  console.log(" installing deps...");
+  execSync("npm install --no-audit --no-fund", {
+    cwd: APP_DIR,
+    stdio: ["ignore", "ignore", "inherit"],
+    shell: true,
+  });
+
+  // Build frontend if not pre-built
+  if (!existsSync(join(APP_DIR, "dist", "index.html"))) {
     process.stdout.write("  Building dashboard...");
-    run(`${nextBin()} build`, APP_DIR, ["ignore", "ignore", "inherit"]);
+    execSync("npx vite build", {
+      cwd: APP_DIR,
+      stdio: ["ignore", "ignore", "inherit"],
+      shell: true,
+    });
+    console.log(" done.");
   }
 
   writeFileSync(versionFile, currentVersion);
-  console.log(" done.");
+  console.log("  Ready.");
   console.log("");
 }
 
-// Ensure data dir
 mkdirSync(DATA_DIR, { recursive: true });
-
 const dbPath = join(DATA_DIR, "prompttrace.db");
 
-// --- Determine server command ---
-const standaloneServer = join(APP_DIR, "server.js");
-const useStandalone = existsSync(standaloneServer);
+// --- Start server ---
+const serverEnv = { ...process.env, PORT: port, NODE_ENV: "production" };
 
-const serverCmd = useStandalone
-  ? `${JSON.stringify(process.execPath)} ${JSON.stringify(standaloneServer)}`
-  : `${nextBin()} start -p ${port}`;
-
-const serverEnv = {
-  ...process.env,
-  PORT: port,
-  HOSTNAME: "0.0.0.0",
-  NODE_ENV: "production",
-};
-
-// --- Scan only mode ---
 if (scanOnly) {
   process.stdout.write("  Starting server for scanning...");
-  const srv = spawn(serverCmd, { cwd: APP_DIR, stdio: "ignore", shell: true, detached: true, env: serverEnv });
+  const srv = spawn("npx", ["tsx", "server/index.ts"], {
+    cwd: APP_DIR, stdio: "ignore", shell: true, detached: true, env: serverEnv,
+  });
   await waitForServer(port, 20000);
   console.log(" ready.");
   await runIngest(port);
@@ -167,17 +153,11 @@ if (scanOnly) {
   process.exit(0);
 }
 
-// --- Start server ---
-const server = spawn(serverCmd, {
-  cwd: APP_DIR,
-  stdio: ["ignore", "pipe", "inherit"],
-  shell: true,
-  env: serverEnv,
+const server = spawn("npx", ["tsx", "server/index.ts"], {
+  cwd: APP_DIR, stdio: ["ignore", "pipe", "inherit"], shell: true, env: serverEnv,
 });
-
 server.stdout?.on("data", () => {});
 
-// Scan, then open browser
 (async () => {
   await waitForServer(port, 20000);
 
@@ -191,7 +171,6 @@ server.stdout?.on("data", () => {});
   }
 
   console.log(`  Dashboard ready at http://localhost:${port}`);
-  console.log("");
   console.log("  Press Ctrl+C to stop");
   console.log("");
 
@@ -201,8 +180,6 @@ server.stdout?.on("data", () => {});
 server.on("close", (code) => process.exit(code ?? 0));
 process.on("SIGINT", () => { server.kill(); process.exit(0); });
 process.on("SIGTERM", () => { server.kill(); process.exit(0); });
-
-// --- Helpers ---
 
 async function waitForServer(p, timeout) {
   const start = Date.now();
@@ -218,10 +195,9 @@ async function waitForServer(p, timeout) {
 async function runIngest(p) {
   const sources = ["claude-code", "cursor", "codex-cli"];
   let total = 0;
-
   for (const src of sources) {
     try {
-      const label = src === "claude-code" ? "Claude Code" : "Cursor";
+      const label = { "claude-code": "Claude Code", cursor: "Cursor", "codex-cli": "Codex CLI" }[src] || src;
       process.stdout.write(`  Scanning ${label}... `);
       const res = await fetch(`http://localhost:${p}/api/ingest`, {
         method: "POST",
@@ -239,11 +215,10 @@ async function runIngest(p) {
       console.log("skipped");
     }
   }
-
   if (total > 0) {
     console.log(`  Total: ${total} prompts ingested`);
   } else {
-    console.log("  No AI histories found. Dashboard will show demo data.");
+    console.log("  No AI histories found.");
   }
   console.log("");
 }

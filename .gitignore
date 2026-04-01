@@ -31,3 +31,4 @@ drizzle/
 
 # typescript
 tsconfig.tsbuildinfo
+dist/

@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useMemo } from "react";
 import { SearchX } from "lucide-react";
 import type { Prompt, Source, Project, PromptFile } from "@/lib/types";

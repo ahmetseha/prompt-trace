@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { SourceIcon, getSourceLabel } from "@/components/source-icon";
 import type { Source } from "@/lib/types";
