@@ -1,7 +1,7 @@
 {
   "name": "prompttrace",
-  "version": "1.0.1",
-  "description": "Local-first prompt intelligence for developers. Analyze, search, and improve your AI prompting workflow.",
+  "version": "2.0.1",
+  "description": "Local-first prompt optimization engine for AI-assisted development. Scans 13 AI tools, scores quality, extracts templates, detects workflow patterns.",
   "bin": {
     "prompttrace": "bin/cli.mjs"
   },

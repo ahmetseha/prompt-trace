@@ -64,7 +64,7 @@ const noCache = args.includes("--no-cache");
 const scanOnly = args[0] === "scan";
 
 console.log("");
-console.log("  PromptTrace v1.0.1");
+console.log("  PromptTrace v2.0.1");
 console.log("  Local-first prompt intelligence for developers");
 console.log("");
 
@@ -142,7 +142,7 @@ const serverEnv = { ...process.env, PORT: port, NODE_ENV: "production" };
 
 if (scanOnly) {
   process.stdout.write("  Starting server for scanning...");
-  const srv = spawn("npx", ["tsx", "server/index.ts"], {
+  const srv = spawn("npx tsx server/index.ts", [], {
     cwd: APP_DIR, stdio: "ignore", shell: true, detached: true, env: serverEnv,
   });
   await waitForServer(port, 20000);
@@ -153,7 +153,7 @@ if (scanOnly) {
   process.exit(0);
 }
 
-const server = spawn("npx", ["tsx", "server/index.ts"], {
+const server = spawn("npx tsx server/index.ts", [], {
   cwd: APP_DIR, stdio: ["ignore", "pipe", "inherit"], shell: true, env: serverEnv,
 });
 server.stdout?.on("data", () => {});
