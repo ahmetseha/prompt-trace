@@ -51,6 +51,7 @@ function extractTextFromContent(content: unknown): string {
 async function parseJsonlFile(
   filePath: string,
   projectDirName: string,
+  fileBirthtime: number,
   fileMtime: number
 ): Promise<ParsedPrompt[]> {
   const results: ParsedPrompt[] = [];
@@ -73,6 +74,14 @@ async function parseJsonlFile(
   const projectName = extractProjectName(projectDirName);
   const sessionId = path.basename(path.dirname(filePath));
 
+  // Count user messages first to distribute timestamps across session duration
+  const userMsgIndices: number[] = [];
+  for (let i = 0; i < messages.length; i++) {
+    if (messages[i].role === "user") userMsgIndices.push(i);
+  }
+  const totalUsers = userMsgIndices.length;
+
+  let userIndex = 0;
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
     if (msg.role !== "user") continue;
@@ -81,9 +90,9 @@ async function parseJsonlFile(
       ? (msg.message as Record<string, unknown>).content
       : msg.content;
     let promptText = extractTextFromContent(content);
-    if (!promptText.trim()) continue;
+    if (!promptText.trim()) { userIndex++; continue; }
     promptText = stripUserQueryTags(promptText);
-    if (!promptText.trim()) continue;
+    if (!promptText.trim()) { userIndex++; continue; }
 
     // Find next assistant message
     let assistantMsg: Record<string, unknown> | undefined;
@@ -103,10 +112,18 @@ async function parseJsonlFile(
       : undefined;
     const responsePreview = responseText ? responseText.slice(0, 200) : undefined;
 
+    // Distribute timestamps proportionally between file birth and mtime
+    const sessionStart = fileBirthtime;
+    const sessionEnd = fileMtime;
+    const duration = Math.max(sessionEnd - sessionStart, 60_000); // at least 1 min
+    const promptTimestamp = totalUsers <= 1
+      ? sessionEnd
+      : sessionStart + Math.round((userIndex / (totalUsers - 1)) * duration);
+
     results.push({
       sessionId,
       projectName,
-      timestamp: fileMtime,
+      timestamp: promptTimestamp,
       promptText,
       responsePreview,
       model: "Cursor",
@@ -114,6 +131,8 @@ async function parseJsonlFile(
         sourceFile: filePath,
       },
     });
+
+    userIndex++;
   }
 
   return results;
@@ -200,8 +219,9 @@ export const cursorAdapter: SourceAdapter = {
     for (const { filePath, projectDir } of jsonlFiles) {
       try {
         const stat = await fs.promises.stat(filePath);
+        const birthtime = stat.birthtimeMs;
         const mtime = stat.mtimeMs;
-        const parsed = await parseJsonlFile(filePath, projectDir, mtime);
+        const parsed = await parseJsonlFile(filePath, projectDir, birthtime, mtime);
         results.push(...parsed);
       } catch {
         // Skip corrupt files

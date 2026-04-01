@@ -140,17 +140,10 @@ export async function ingestSource(
     }
   }
 
-  const BATCH_SIZE = 50;
-  for (let i = 0; i < data.prompts.length; i += BATCH_SIZE) {
-    const batch = data.prompts.slice(i, i + BATCH_SIZE);
+  for (const p of data.prompts) {
     try {
-      for (const p of batch) {
-        db.insert(schema.prompts).values(p).run();
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`Failed to insert prompts: ${msg}`);
-    }
+      db.insert(schema.prompts).values(p).run();
+    } catch { /* skip duplicate IDs */ }
   }
 
   for (const pf of data.promptFiles) {

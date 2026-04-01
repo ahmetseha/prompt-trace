@@ -9,7 +9,8 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 export const api = {
   getStats: () => fetchJson<any>('/api/stats'),
   getPrompts: async (params?: Record<string, string>) => {
-    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    const merged = { limit: '10000', ...params };
+    const qs = '?' + new URLSearchParams(merged).toString();
     const data = await fetchJson<any>(`/api/prompts${qs}`);
     return data.prompts ?? data;
   },

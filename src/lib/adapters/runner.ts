@@ -253,8 +253,9 @@ export function transformParsedData(
   const promptFiles: PromptFile[] = [];
   const promptTags: PromptTag[] = [];
 
-  for (const p of parsed) {
-    const promptId = stableId("p", `${sourceId}:${p.sessionId || ""}:${p.timestamp}:${p.promptText.slice(0, 50)}`);
+  for (let idx = 0; idx < parsed.length; idx++) {
+    const p = parsed[idx];
+    const promptId = stableId("p", `${sourceId}:${p.sessionId || ""}:${p.timestamp}:${idx}:${p.promptText.slice(0, 80)}`);
     const projectKey = p.projectPath || p.projectName || "unknown";
     const projectId = projectIdMap.get(projectKey) || null;
     const sessionInternalId = sessionIdMap.get(p.sessionId || "unknown") || null;
