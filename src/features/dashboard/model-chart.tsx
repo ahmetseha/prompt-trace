@@ -8,35 +8,41 @@ import {
 } from "recharts";
 import { ChartCard } from "@/components/chart-card";
 
-const COLORS = ["#6366f1", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ec4899"];
-
 interface ModelChartProps {
-  data: { model: string; count: number }[];
+  data: { model: string; count: number; cost?: number }[];
 }
 
 export function ModelChart({ data }: ModelChartProps) {
+  const totalCost = data.reduce((sum, d) => sum + (d.cost || 0), 0);
+
   return (
-    <ChartCard title="Models Used" description="Prompts by AI model">
+    <ChartCard
+      title="Top Models"
+      description={totalCost > 0 ? `$${totalCost.toFixed(0)} est. total` : "Prompts by AI model"}
+    >
       <div className="h-[220px]">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <BarChart
-            data={data.slice(0, 6)}
-            margin={{ top: 5, right: 5, bottom: 0, left: -20 }}
+            data={data.slice(0, 8)}
+            layout="vertical"
+            margin={{ top: 0, right: 5, bottom: 0, left: 0 }}
           >
             <XAxis
-              dataKey="model"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#71717a", fontSize: 10 }}
-              tickMargin={8}
-            />
-            <YAxis
+              type="number"
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#71717a", fontSize: 11 }}
-              tickMargin={8}
             />
-            <Tooltip cursor={{ fill: "transparent" }}
+            <YAxis
+              type="category"
+              dataKey="model"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#a1a1aa", fontSize: 11 }}
+              width={120}
+            />
+            <Tooltip
+              cursor={{ fill: "transparent" }}
               contentStyle={{
                 backgroundColor: "#18181b",
                 border: "1px solid #27272a",
@@ -47,10 +53,11 @@ export function ModelChart({ data }: ModelChartProps) {
               itemStyle={{ color: "#e4e4e7" }}
             />
             <Bar
+              activeBar={false}
               dataKey="count"
               fill="#6366f1"
-              radius={[4, 4, 0, 0]}
               fillOpacity={0.8}
+              radius={[0, 4, 4, 0]}
               name="Prompts"
             />
           </BarChart>

@@ -57,10 +57,18 @@ export function DashboardPage() {
     .map(([source, count]) => ({ source, count }))
     .sort((a, b) => b.count - a.count);
 
-  const modelData = Object.entries(stats.promptsByModel || {})
-    .filter(([model]) => model && model !== '')
-    .map(([model, count]: [string, any]) => ({ model, count }))
-    .sort((a: any, b: any) => b.count - a.count);
+  // Build model data with cost from prompts
+  const modelAgg: Record<string, { count: number; cost: number }> = {};
+  for (const p of (prompts as any[])) {
+    const m = p.model;
+    if (!m) continue;
+    if (!modelAgg[m]) modelAgg[m] = { count: 0, cost: 0 };
+    modelAgg[m].count += 1;
+    modelAgg[m].cost += p.costEstimate || 0;
+  }
+  const modelData = Object.entries(modelAgg)
+    .map(([model, { count, cost }]) => ({ model, count, cost }))
+    .sort((a, b) => b.count - a.count);
 
   return (
     <DashboardContent
