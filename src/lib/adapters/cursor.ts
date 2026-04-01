@@ -194,6 +194,10 @@ async function parseJsonlFile(
     promptText = stripUserQueryTags(promptText);
     if (!promptText.trim()) { userIndex++; continue; }
 
+    // Skip noise: image uploads, interrupted requests
+    const trimCheck = promptText.trim();
+    if (/^\[Image\]/i.test(trimCheck) || /^<image_files>/i.test(trimCheck)) { userIndex++; continue; }
+
     // Find next assistant message
     let assistantMsg: Record<string, unknown> | undefined;
     for (let j = i + 1; j < messages.length; j++) {

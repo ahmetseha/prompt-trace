@@ -142,6 +142,8 @@ const CATEGORY_RULES: CategoryRule[] = [
 const NOISE_PATTERNS = [
   /^\[Request interrupted/i,
   /^<local-command/i,
+  /^\[Image\]/i,
+  /^<image_files>/i,
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, // UUID only
   /^Tool loaded\.?$/i,
   /^<ide_/i,
